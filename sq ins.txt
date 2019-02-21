@@ -1,0 +1,1599 @@
+
+
+Qns 1: write query to remove duplicate record from a table in sql
+ans:
+
+with expression as
+(
+select *, ROW_NUMBER() over(partition by name, salary order by name) as RN
+from test
+)
+select * from expression where RN != 1
+-- delete from expression where RN != 1
+
+
+Qns 2: sql basic functions
+ans upper(ColumnName), sign(), rank(), colease()
+
+Definition and Usage:
+The COALESCE() function returns the first non-null expression in a list.
+SELECT COALESCE(NULL, NULL, NULL, 'W3Schools.com', NULL, 'Example.com');
+
+result: W3Schools.com
+
+isnull()
+Definition and Usage
+The ISNULL() function lets you return an alternative value when an expression is NULL.
+
+Syntax
+ISNULL(expression, alt_value)
+
+The ISNULL() function returns the alt_value, if the expression is a NULL
+The ISNULL() function returns the expression, if the expression is NOT NULL
+
+SELECT ISNULL('Hello', 'W3Schools.com'); => Hello
+SELECT ISNULL(NULL, 500); ==> 500
+
+Qns 3: SQL update query using joins:
+
+UPDATE A SET foo = B.bar FROM TableA A
+JOIN TableB B
+ON A.col1 = B.colx
+WHERE ...
+
+
+
+Qns 4: copy data to other table
+select * into abc from tests
+
+
+
+Qns 5: sql query result
+
+Dept
+
+id	name
+1	admin     
+2	hr        
+3	It        
+4	sales     
+
+Emp
+
+id	name	       deptId
+1	a         	1
+2	b         	2
+3	c         	1
+4	d         	3
+5	x         	2
+6	y         	2
+7	z         	1
+8	u         	0
+
+write query that produce output:
+
+Department Name	Employee Count
+sales     	0
+It        	1
+admin     	3
+hr        	3
+
+Ans:
+select  D.name as [Department Name],
+Count(E.id) as [Employee Count] from Emp E
+right join Dept D
+on E.deptId = D.id
+group by D.name
+ORDER BY [Employee Count]
+
+
+
+
+
+
+Qns 6: copy one table data to another table
+INSERT INTO SELECT Syntax
+
+Copy all columns from one table to another table:
+
+INSERT INTO table2
+SELECT * FROM table1
+WHERE condition;
+Copy only some columns from one table into another table:
+
+INSERT INTO table2 (column1, column2, column3, ...)
+SELECT column1, column2, column3, ...
+FROM table1
+WHERE condition;
+
+The following SQL statement copies "Suppliers" into "Customers" (the columns that are not filled with data, will contain NULL):
+
+Example
+INSERT INTO Customers (CustomerName, City, Country)
+SELECT SupplierName, City, Country FROM Suppliers;
+
+
+
+qns 7: how to take the database backup
+ans: 
+BACKUP DATABASE [D:\testing.mdf] TO disk = 'C:\PathToBackup\BackupFileName.bak'
+or
+BACKUP DATABASE AdventureWorks TO DISK = 'C:\AdventureWorks.BAK'
+
+
+
+
+Q 8: cursor in sql server
+ans: A cursor is a temporary work area created in system memory when an SQL statement is executed. 
+A cursor is a set of rows together with a pointer that identifies a current row.
+It is a database object to retrieve data from a result set one row at a time.
+
+https://www.c-sharpcorner.com/UploadFile/f0b2ed/cursors-in-sql/
+
+Example:
+GO  
+  
+CREATE TABLE [dbo].[Employee](  
+    [Emp_ID] [int] NOT NULL,  
+    [Emp_Name] [nvarchar](50) NOT NULL,  
+    [Emp_Salary] [int] NOT NULL,  
+    [Emp_City] [nvarchar](50) NOT NULL,  
+ CONSTRAINT [PK_Employee] PRIMARY KEY CLUSTERED   
+(  
+    [Emp_ID] ASC  
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]  
+) ON [PRIMARY]  
+  
+GO
+
+
+Insert into Employee  
+Select 1,'Pankaj',25000,'Alwar' Union All  
+Select 2,'Rahul',26000,'Alwar' Union All  
+Select 3,'Sandeep',25000,'Alwar' Union All  
+Select 4,'Sanjeev',24000,'Alwar' Union All  
+Select 5,'Neeraj',28000,'Alwar' Union All  
+Select 6,'Naru',20000,'Alwar' Union All  
+Select 7,'Omi',23000,'Alwar'   
+
+
+SET NOCOUNT ON  
+DECLARE @EMP_ID INT  
+DECLARE @EMP_NAME NVARCHAR(MAX)  
+DECLARE @EMP_SALARY INT  
+DECLARE @EMP_CITY NVARCHAR(MAX)  
+  
+DECLARE EMP_CURSOR CURSOR  
+LOCAL  FORWARD_ONLY  FOR  
+SELECT * FROM Employee  
+OPEN EMP_CURSOR  
+FETCH NEXT FROM EMP_CURSOR INTO  @EMP_ID ,@EMP_NAME,@EMP_SALARY,@EMP_CITY  
+WHILE @@FETCH_STATUS = 0  
+BEGIN  
+PRINT  'EMP_ID: ' + CONVERT(NVARCHAR(MAX),@EMP_ID)+  '  EMP_NAME '+@EMP_NAME +'  EMP_SALARY '  +CONVERT(NVARCHAR(MAX),@EMP_SALARY)  +  '  EMP_CITY ' +@EMP_CITY  
+FETCH NEXT FROM EMP_CURSOR INTO  @EMP_ID ,@EMP_NAME,@EMP_SALARY,@EMP_CITY  
+END  
+CLOSE EMP_CURSOR  
+DEALLOCATE EMP_CURSOR  
+
+
+Q 9: limitation of cte and its syntax and working
+
+
+
+
+Q 10 : can we wrap sp under the another sp in sql
+yes
+
+alter proc sp_getListWrapper
+as
+Begin
+exec sp_getList
+end
+
+
+
+
+Q 11: can we call function from sp?
+yes
+Create FUNCTION [dbo].[MultiplyofTwoNumber]
+(
+       @Number1 int,
+       @Number2 int
+)
+RETURNS int
+AS
+BEGIN
+       -- Declare the return variable here
+       DECLARE @Result int
+       SELECT @Result = @Number1 * @Number2;
+       -- Return the result of the function
+       RETURN @Result
+END 
+
+
+Create PROCEDURE [dbo].[callingFunction]
+(
+@FirstNumber int,
+@SecondNumber int
+)
+AS
+begin
+declare @setval int
+select dbo.[MultiplyofTwoNumber](@FirstNumber, @SecondNumber)
+end
+ 
+
+
+USE [registration]
+GO
+DECLARE  @return_value int
+EXEC  @return_value = [dbo].[callingFunction]   @FirstNumber = 3,  @SecondNumber = 4
+
+
+
+
+
+Q 12: Why we don't exucete Store procedure in a User Defined Function?
+
+There are several restrictions on what User Defined Functions (UDF's) can do.  
+Primarily, they cannot have code that has side effects.  Like, for example, 
+they cannot make changes to tables (except to table variables defined in the function.  
+These restrictions allow better optimization of function calls.  
+But since those restrictions do not apply to stored procedures, 
+functions cannot call stored procedure's because there would be no efficient 
+way of enforcing the "no side effects allowed" rule if functions could call stored procedures.
+
+or 
+
+Functions cannot "touch" any database but read them only. 
+Stored procedures can do anything and everything with databases.
+You cannot execute a stored procedure from a function.
+You can execute an extended stored procedure from a function.
+
+example :
+
+link your sql server for that
+https://www.codeproject.com/Tips/1212704/How-to-Use-a-Stored-Procedure-Inside-an-SQL-Query
+
+CREATE PROCEDURE SampleSP
+AS
+SELECT top 1 name from sys.tables order by NEWID()
+GO
+
+CREATE FUNCTION udf_SampleF ()
+returns nvarchar(100)
+as
+begin
+declare @name nvarchar(100)
+SELECT @name = name FROM OPENQUERY([LOCALSERVER], 'EXEC TestingDB.dbo.SampleSP') query
+return @name
+end
+GO
+
+
+
+
+
+
+Qns 13: 
+Differences between Stored Procedure and User Defined Function in SQL Server
+
+Sr.No.	     User Defined Function	                                                                            Stored Procedure
+1	     Function must return a value.	                                                                    Stored Procedure may or not return values.
+2	     Will allow only Select statements, it will not allow us to use DML statements.	                    Can have select statements as well as DML statements such as insert, update, delete and so on
+3	     It will allow only input parameters, doesn't support output parameters.	                            It can have both input and output parameters.
+4	     It will not allow us to use try-catch blocks.	                                                    For exception handling we can use try catch blocks.
+5	     Transactions are not allowed within functions.	                                                    Can use transactions within Stored Procedures.
+6	     We can use only table variables, it will not allow using temporary tables.	                            Can use both table variables as well as temporary table in it.
+7	     Stored Procedures can't be called from a function.	                                                    Stored Procedures can call functions.
+8	     Functions can be called from a select statement.	                                                    Procedures can't be called from Select/Where/Having and so on statements. Execute/Exec statement can be used to call/execute Stored Procedure.
+9	     A UDF can be used in join clause as a result set.	                                                    Procedures can't be used in Join clause
+
+
+
+
+
+
+Qns 14: result of this query
+select case when null=null then 'Yes' else 'No' end
+
+ans = 'No'
+reason: 
+Because null always not equal to another null.
+Null is consider to be a memory reference. So each null will take different reference ID.
+So NULL will be not equal anytime
+
+query
+table1
+Id Name
+1  NULL
+2  NULL
+3  NULL
+4  A
+5  B
+6  2
+
+result
+Select * from table1 where Name <> 2
+
+Id Name
+4  A
+5  B
+
+Q 15: What is the difference between char, nchar, varchar, and nvarchar in SQL Server?
+
+nchar and nvarchar can store Unicode characters.
+char and varchar cannot store Unicode characters.
+char and nchar are fixed-length which will reserve storage space for number of characters you specify even if you don't use up all that space.
+varchar and nvarchar are variable-length which will only use up spaces for the characters you store. It will not reserve storage like char or nchar.
+nchar and nvarchar will take up twice as much storage space, so it may be adwise to use them only if you need Unicode support.
+
+n- means store unicode character like copy right sign, degree sign etc
+var- means variable length
+
+
+Q 16: what is normalization in sql
+
+
+Q 17: sql table join result
+A                   
+Id
+1
+1
+2
+2
+2
+3
+4
+
+B
+Id
+1
+1
+2
+2
+2
+3
+4
+
+result of inner join, left join and right join and cross join
+1, 1
+1, 1
+
+1, 1
+1, 1
+
+2, 2
+2, 2
+2, 2
+
+2, 2
+2, 2
+2, 2
+
+2, 2
+2, 2
+2, 2
+
+3, 3
+4, 4
+
+output inner join return 12 rows, left join = 12 rows, and right join12 rows, and cross join =49
+
+Q 18: sign function in sql Sign(-35) Sign(35) Sign(0) ?
+ans -1 , 1, 0
+
+
+Q 19: sql query output:
+   table stu
+			name city
+			a     noida
+			b     gzb
+			c     delhi
+			d     gzb
+			
+select  ROW_NUMBER() OVER ( ORDER BY name ) AS 'RowNumber', name, city from stu
+
+
+output:
+
+1	a         	b         
+2	c         	d         
+3	e         	f         
+4	g         	h         
+
+
+
+
+Qns 20: select all table name from sql database
+ans SELECT * FROM INFORMATION_SCHEMA.TABLES
+    select * from sys.procedures
+
+
+
+
+Qns 21: what is rank() function in sql 
+     what is rownumber() function in sql
+     what is danse_rank() function in sql
+     what is ntitle(3) in sql
+ans: 
+ROW_NUMBER() OVER ([PARTITION BY CLAUSE] <ORDER BY CLUASE>): 
+Returns the sequantial number of a row within the a partition of result 
+set at 1 for the first row of the each partition.
+
+RANK() OVER ([PARTITION BY CLAUSE] <ORDER BY CLUASE >): 
+Returns rank for rows within the partition of result set.
+in rank same number having same rank also maintaining the gaps
+
+DENSE_RANK() OVER ([PARTITION BY CLAUSE] <ORDER BY CLUASE >): 
+Returns rank for rows within the partition of result set, With out any gaps in the ranking.
+
+NTILE(INTEGER_EXPRESSION) OVER ([PARTITION BY CLAUSE] <ORDER BY CLUASE >): 
+Distributes the rows in an ordered partition into a specified number of groups.
+
+
+--Row_Number() with out using partition cluase  
+select * ,row_number() over (order by Salary desc) as Row_Num from Employee2  
+--Row_Number() with using partition cluase  
+select * ,row_number() over (partition by Department order by Salary desc) as Row_Num from Employee2  
+
+--rank() with out using partition cluase  
+select * ,rank() over (order by Salary desc) as [Rank] from Employee2  
+--in rank same number having same rank also maintaining the gaps
+
+--rank() with using partition cluase  
+select * ,rank() over (partition by Department order by Salary desc) as [Rank] from Employee2 
+
+--dense_rank() with out using partition cluase  
+select * ,dense_rank() over (order by Salary desc) as [Dense_rank] from Employee2 
+--in dense_rank same number having same rank without maintaining the gaps  
+
+
+--dense_rank() with using partition cluase  
+select * ,dense_rank() over (partition by Department order by Salary desc) as [Dense_rank] from Employee2 
+
+--ntile(input_exp) with out using partition cluase  
+select * ,ntile(10) over (order by Salary desc) as [ntile] from Employee2  
+
+--ntile(input_exp) with using partition cluase  
+select * ,ntile(3) over (partition by Department order by Salary desc) as [ntile] from Employee2  
+
+
+
+
+
+
+Qns 22: Maximum of non-clustered indexes per table ?
+ans: Maximum of non-clustered indexes per table is 999--> This is for 2005 or 2008 or 2012?
+
+
+
+
+Qns 23: select * from table, in this statement does index provide any banifits?
+ans: 
+
+
+Qns 24: disadvantage of store procedure?
+ans: 
+Advantages and Disadvantages of Stored Procedures
+Posted on Friday, 25 May 2012 by SQL Developer
+Stored procedures are special Sql server objects which will be stored in database.
+
+Advantages of  stored procedures:
+Script re-usability: Script complied once can be reused as many times as needed.  
+
+1). Execution Plan Retention and Re-usability: 
+Execution plan will be stored in the database for a stored procedure 
+and same plan will be executed when ever a stored procedure runs.
+
+2). Encapsulation of complete business logic in a unit:  
+Stored procedure encapsulates the complete process business logic inside the stored procedure. 
+Instead of executing all the queries, it’s easy and safe to execute the stored procedure.
+
+3). Safety and Security: Stored procedure can be granted with access. T
+his will allow only intended resources to utilize or run the stored procedure. 
+Security feature in stored procedures shield the user from directly accessing the tables in a database.
+
+4). Easier to call from external application: 
+Stored procedures can be easily invoked from external applications like C#.net , Asp.Net and web services.
+
+5). Client- Server traffic will be reduced by using stored procedures since this will use lesser bandwidth compared to the queries.
+
+6). Temporary stored procedures are also supported in SQL Server. 
+This feature will allow stored procedures to be created in temp db just like temporary tables. 
+That is # and ## stored procedures can be created in SQL SERVER. 
+They will automatically be dropped when you disconnect from the server.
+
+7). Simple and Easy to use: 
+When a process needs to be executed or invoked from some external application, 
+we need not transfer all sql queries involved in the process. Instead we can just call the stored procedure.
+
+
+Disadvantages of stored procedures:
+1). Execution plan of the stored procedure is cashed. 
+Same Execution plan will be used and executed whenever a stored procedure is executed. 
+Some times old execution plan may not be using the latest indexes. 
+In those cases execution plan will not be correctly optimized.
+This will hinder the performance of the stored procedure.
+
+2). Stored procedures are not faster than dynamic SQL’s.
+
+3). No version control system is available for Stored prcedures.We can
+find out created date and last modified date but we cannot find the
+complete history for the same.
+
+4). Business logic in stored procedures.Business logic should be written in the business layer not at the database side.
+
+5). Debugging is very difficult in case of stored procedures.Although
+we can debug stored procedures with the help of visual studio.
+
+
+
+
+
+
+Qns 25: what is dynamic sql query?
+ans: 
+
+A dynamic example
+The question I answer most often is, "How can I pass my WHERE statement into a stored procedure?" 
+I usually see scenarios similar to the following, which is not valid TSQL syntax:
+
+DECLARE @WhereClause NVARCHAR(2000)
+SET @WhereClause = ' Prouct = ''Computer'''
+SELECT * FROM SalesHistory WHERE @WhereClause
+
+
+In a perfect world, it would make much more sense to do the following:
+DECLARE @Product VARCHAR(20)
+SET @Product = 'Computer'
+SELECT * FROM SalesHistory WHERE Product = @Product
+
+
+
+
+
+
+Qns 26: can we change/update/modify the store procedure without alter clause ?
+ans: 
+
+
+
+Qns 27:  what is CTE and how to delete temp records from the table using cte
+ans:  it is a temporary result set, and the result is available to the first dml statement
+with CteResult
+as
+(
+select *, rownumber() over(partition by name, salary) as RN from tblEmp
+)
+delete from CteResultwhere RN<>1
+
+
+
+Qns 28:  what is CTE and how to calculate the 2nd highest salary
+
+ans:  it is a temporary result set, and the result is available to the first dml statement
+with CteResult
+as
+(
+select *, dense_rank() over(order by salary desc) as RN from Employee
+)
+select * from CteResult where RN = 2 
+
+
+
+
+Qns 29: What is DDL, DML, DCL, and TCL in sql.
+ans: 
+DDL:
+DDL is short name of Data Definition Language, 
+which deals with database schemas and descriptions, of how the data should reside in the database.
+
+CREATE - to create database and its objects like (table, index, views, store procedure, function, and triggers)
+ALTER - alters the structure of the existing database
+DROP - delete objects from the database
+TRUNCATE - remove all records from a table, including all spaces allocated for the records are removed
+COMMENT - add comments to the data dictionary
+RENAME - rename an object
+
+
+
+DML:
+DML is short name of Data Manipulation Language which deals with data manipulation 
+and includes most common SQL statements such SELECT, INSERT, UPDATE, DELETE etc, and it is used to store, modify, retrieve, delete and update data in a database.
+
+SELECT - retrieve data from a database
+INSERT - insert data into a table
+UPDATE - updates existing data within a table
+DELETE - Delete all records from a database table
+MERGE - UPSERT operation (insert or update)
+CALL - call a PL/SQL or Java subprogram
+EXPLAIN PLAN - interpretation of the data access path
+LOCK TABLE - concurrency Control
+
+
+DCL:
+DCL is short name of Data Control Language which includes commands such as GRANT 
+and mostly concerned with rights, permissions and other controls of the database system.
+
+GRANT - allow users access privileges to database
+REVOKE - withdraw users access privileges given by using the GRANT command
+
+
+TCL:
+TCL is short name of Transaction Control Language which deals with a transaction within a database.
+
+COMMIT - commits a Transaction
+ROLLBACK - rollback a transaction in case of any error occurs
+SAVEPOINT - to rollback the transaction making points within groups
+SET TRANSACTION - specify characteristics of the transaction
+
+
+
+Qns 30: write query to fetch latest chat message from all the group whether incomming or outgoing?
+ans: 
+
+with Cte
+as
+(
+
+select [Message], ROW_NUMBER() over (partition by GroupIdOrPersonId order by [DateTime] desc) as RN from tblChatStatus 
+--where senderId=123
+)
+select [Message] from Cte where Rn=1
+
+
+
+
+Qns 31: write query to fetch total chat message count from all the group? sql group by examples.
+ans: 
+select count(Message) as MessageCount , GroupIdOrPersonId  from tblChatStatus group by GroupIdOrPersonId
+
+select count(Message) as MessageCount , TG.Name  from tblChatStatus TCS
+join tblGroup  TG
+on TCS.DateTime = TG.Id
+group by GroupIdOrPersonId;
+
+or
+
+Group by clause is used to select the selected set of row into a summery row in conjuction with aggregate function
+
+Important Points:
+
+GROUP BY clause is used with the SELECT statement.
+In the query, GROUP BY clause is placed after the WHERE clause.
+In the query, GROUP BY clause is placed before ORDER BY clause if used any.
+Syntax:
+
+SELECT column1, function_name(column2)
+FROM table_name
+WHERE condition
+GROUP BY column1, column2
+ORDER BY column1, column2;
+
+function_name: Name of the function used for example, SUM() , AVG().
+table_name: Name of the table.
+condition: Condition used.
+
+
+Problem: List the number of customers in each country. Only include countries with more than 10 customers
+SELECT COUNT(Id) as TotalCustomer, Country 
+  FROM Customer
+ GROUP BY Country
+HAVING TotalCustomer > 10
+
+Results: 3 records 
+
+TotalCustomer  Country
+11	       France
+11	       Germany
+13	       USA
+
+
+Problem: List the number of customers in each country, except the USA, sorted high to low. 
+Only include countries with 9 or more customers. 
+
+SELECT COUNT(Id), Country 
+  FROM Customer
+ WHERE Country <> 'USA'
+ GROUP BY Country
+HAVING COUNT(Id) >= 9
+ ORDER BY COUNT(Id) DESC
+
+
+Results: 3 records 
+
+Count	Country
+11	France
+11	Germany
+9	Brazil
+
+
+Problem: List all customer with average orders between $1000 and $1200.
+
+
+SELECT AVG(TotalAmount), FirstName, LastName
+  FROM [Order] O JOIN Customer C ON O.CustomerId = C.Id
+ GROUP BY FirstName, LastName
+HAVING AVG(TotalAmount) BETWEEN 1000 AND 1200
+
+
+Results: 10 records 
+
+Average	        FirstName	LastName
+1081.215000	Miguel	        Angel Paolino
+1063.420000	Isabel	        de Castro
+1008.440000	Alexander	Feuer
+1062.038461	Thomas	        Hardy
+1107.806666	Pirkko	        Koskitalo
+1174.945454	Janete	        Limeira
+1073.621428	Antonio	        Moreno
+1065.385000	Rita	        Müller
+1183.010000	José	        Pedro Freyre
+1057.386666	Carine	        Schmitt
+
+
+
+Example - Using GROUP BY with the SUM Function
+Let's look at how to use the GROUP BY clause with the SUM function in SQL.
+
+In this example, we have a table called employees with the following data:
+
+employee_number	 last_name	first_name	salary	dept_id
+1001	         Smith	        John	        62000	500
+1002	         Anderson	Jane	        57500	500
+1003	         Everest	Brad	        71000	501
+1004	         Horvath	Jack	        42000	501
+
+Enter the following SQL statement:
+
+Try It
+SELECT dept_id, SUM(salary) AS total_salaries
+FROM employees
+GROUP BY dept_id;
+There will be 2 records selected. These are the results that you should see:
+
+dept_id	total_salaries
+500	119500
+501	113000
+In this example, we've used the SUM function to add up all of the salaries for each dept_id and we've aliased the results of the SUM function as total_salaries. Because the dept_id is not encapsulated in the SUM function, it must be listed in the GROUP BY clause.
+
+Example - Using GROUP BY with the COUNT function
+Let's look at how to use the GROUP BY clause with the COUNT function in SQL.
+
+In this example, we have a table called products with the following data:
+
+product_id	       product_name	category_id
+1	               Pear	        50
+2	               Banana	        50
+3	               Orange	        50
+4	               Apple	        50
+5	               Bread	        75
+6	               Sliced Ham	25
+7	               Kleenex	NULL
+Enter the following SQL statement:
+
+Try It
+SELECT category_id, COUNT(*) AS total_products
+FROM products
+WHERE category_id IS NOT NULL
+GROUP BY category_id
+ORDER BY category_id;
+There will be 3 records selected. These are the results that you should see:
+
+category_id	total_products
+25	            1
+50	            4
+75	            1
+In this example, we've used the COUNT function to calculate the number of products for each category_id and we've aliased the results of the COUNT function as total_products. We've excluded any category_id values that are NULL by filtering them out in the WHERE clause. Because the category_id is not encapsulated in the COUNT function, it must be listed in the GROUP BY clause.
+
+
+Qns 32: difference between where and having clause ?
+ans :     HAVING specifies a search condition for a group or an aggregate function used in SELECT statement.
+
+  1).     HAVING: is used to check conditions after the aggregation takes place.
+          WHERE: is used to check conditions before the aggregation takes place.
+  Ex: 
+  SELECT COUNT(Id), Country 
+  FROM Customer
+  WHERE Country <> 'USA'
+  GROUP BY Country
+  HAVING COUNT(Id) >= 9
+  ORDER BY COUNT(Id) DESC
+
+
+  Results: 3 records 
+
+  Count	Country
+  11	France
+  11	Germany
+  9	Brazil
+
+ 2). WHERE clause can be used with - Select, Insert, and Update statements, 
+     where as HAVING clause can only be used with the Select statement.
+
+ 3).  WHERE clause does not work for aggregate functions
+means : you should not use like this bonus : table name
+
+SELECT name  
+FROM bonus  
+GROUP BY name  
+WHERE sum(salary) > 200  
+HERE Instead of using WHERE clause you have to use HAVING..
+
+without using GROUP BY clause, HAVING clause just works as WHERE clause
+
+SELECT name  
+FROM bonus  
+GROUP BY name  
+HAVING sum(salary) > 200  
+
+
+
+ 4). The main difference between WHERE and HAVING clause is, 
+   WHERE is used for row operations and HAVING is used for column operations.
+
+
+
+
+
+
+Qns 33: sql query result?
+ans: 
+
+select 1 from tblChatStatus -- return 1 for all rows
+select 2 from tblChatStatus -- return 2 for all rows
+select count(1)  from tblChatStatus  --return total number of rows in tblChatStatus
+select count(2)  from tblChatStatus  --return total number of rows in tblChatStatus
+select count(3)  from tblChatStatus  --return total number of rows in tblChatStatus
+select count(*)  from tblChatStatus  --return total number of rows in tblChatStatus
+select count(Id)  from tblChatStatus  --return total number of rows in tblChatStatus
+select count([Message])  from tblChatStatus  --return total number of rows in tblChatStatus
+
+
+
+
+Qns 34: Difference between count(*) and count(1) in oracle?
+Ans: 
+    count(*) means it will count all records i.e each and every cell BUT
+    count(1) means it will add one pseudo column with value 1 and returns count of all records
+
+
+
+
+Qns 35: Maximum Number for Clustered Index and Non-clustered Index
+ans: Object	
+                     SQL Server 7.0	SQL Server 2000	  SQL Server 2005	SQL Server 2008
+Clustered Index	          1	             1	           1	                 1
+Non-clustered Index      249	            249	           249	                 999
+
+Qns 36: differene between union and union all?
+ans: 
+Both UNION and UNION ALL concatenate the result of two different SQLs. They differ in the way they handle duplicates.
+UNION performs a DISTINCT on the result set, eliminating any duplicate rows.
+UNION ALL does not remove duplicates, and it therefore faster than UNION.
+
+
+
+Qns 37: How to debug the store procedure in sql server?
+ans: https://www.sqlshack.com/debugging-stored-procedures-sql-server-management-studio-ssms/
+ use the alt + f5/ start debugging option from sql server
+ then use f10 to move one step ahead
+
+Qns 38: difference between store procedure and sql query?
+ans: stored procedure comes with some major characterstics, as it consists in pre compiled format so the performance increase during dataaccess. 
+    incase of simple query it requires to complie again and again as per user request, 
+    but here its not required due to precompile format (*compile requires only ones).
+
+
+Qns 39: query output 
+
+select A,B,C from table => run
+select A B C from table => not run
+select A B from table => run
+
+Select Name as Name1 from Test as T  => run
+Select Name  Name1 from Test  T => run
+
+
+
+
+Q 39: self join query
+create table Employee(
+Id int primary key identity,
+Name nvarchar(10),
+ManagerId int 
+)
+
+insert into Employee values
+('Amit', null),
+('sumeet', 1),
+('Rahul', 2),
+('Michael', 3),
+('John', 2)
+
+select * from Employee
+
+select  
+--* 
+--, 
+E.Name [Employee Name],
+case when E.ManagerId is null then 'No Boss'  else M.Name end  as [Manager Name] 
+from Employee E
+left join Employee M
+on E.ManagerId = M.Id
+
+
+
+Qns:40
+Definition and Usage
+The SIGN() function returns a value indicating the sign of a number.
+
+This function will return one of the following:
+
+If number > 0, it returns 1
+If number = 0, it returns 0
+If number < 0, it returns -1
+Syntax
+SIGN(number)
+
+
+
+
+Qns 41: how to copy one column value to another column value
+ans:  UPDATE table_name SET destination_column_name=orig_column_name WHERE condition_if_necessary
+
+
+Qns 42: write the query to display Emp Name, Manager Name and Dept Name from the below table structure
+where salary > 'sth' and city ='sth'?
+
+tblEmp
+id name salary city   deptId managerId
+1  a    1000   noida  1      null
+2  b    1200   gzb    2      1
+3  c    1500   noida  3      1
+4  d    1600   gzb    4      2
+
+tblDept
+id name
+1   hr
+2   sales
+3   jobs
+4   It
+
+ans: 
+
+
+select 
+
+ E.name as [Emp Name],
+ (CASE WHEN M.name is null THEN 'No Boss' ELSE M.name END) AS [Manager Name],   // CWTEE
+ D.name as [Department Name] 
+
+from tblEmp E
+left join tblEmp M 
+on E.id = M.managerId
+join tblDept D
+on E.deptId = D.id
+where city ='xyz' and salary > '1000'
+
+
+or using IsNull() function
+
+
+select 
+
+ E.name as [Emp Name],
+ IsNull(M.name, 'No Boss') AS [Manager Name],   // CWTEE
+ D.name as [Department Name] 
+
+from tblEmp E
+left join tblEmp M 
+on E.id = M.managerId
+join tblDept D
+on E.deptId = D.id
+where city ='xyz' and salary > '1000'
+
+
+or using COALESCE() function
+
+
+select 
+
+ E.name as [Emp Name],
+ COALESCE(M.name, 'No Boss') AS [Manager Name],   // CWTEE
+ D.name as [Department Name] 
+
+from tblEmp E
+left join tblEmp M 
+on E.id = M.managerId
+join tblDept D
+on E.deptId = D.id
+where city ='xyz' and salary > '1000'
+
+
+how to optimized that query ?
+ans: we can create the non cluster index on city and salary column 
+
+
+
+qns 43, how to make store procedure faster?
+ans:
+http://www.sqlservercentral.com/articles/Performance+Tuning/67427/
+Twenty tips to write a good stored procedure
+=================================================
+
+
+The writing of stored procedures is a very common task in todays database world. 
+Not only by database developers, but also application developers are writing the procedures. 
+DBA's also need to write procedures. In fact, I have faced a very common question in my interviews: " How many stored procedures have you written?"
+Since the world is going for fat servers (a server which runs an application where most of the program code resides on it rather than on the client computers), 
+stored procedures are gaining more and more importance. Here is my humble try to give some tips to write good procedures. 
+I hope this will add value for novice as well as experienced programmers.
+
+
+
+1. Keywords - Use SQL keywords in capital letters to increase readability. Also use proper indentation to increase readability.
+
+2. SQL-92 - Always try to use ANSI 92 syntax. Till now the old syntax is working the old syntax will be deprecated in the next release of MS SQL server.
+As an example, for joining, use
+
+SELECT * FROM employee e1 INNER JOIN employee _dtl e2
+ON e1.id = e2.id
+Instead of
+SELECT * FROM employee e1, employee_dtl e2
+WHERE e1.id = e2.id
+Reference: http://bytes.com/topic/sql-server/answers/82859-sql-syntax-inner-outer-join-vs-where
+
+3. Variables - Use as few as possible variables. It frees spaces in cache.
+
+4. Dynamic Queries - Try to minimize the usage of dynamic queries. 
+If you are using a dynamic query like: SELECT * FROM mydb.dbo.emp where empid = @eid then there is no problem. 
+You can supply a value for the @eid parameter and there is no recompilation of the execution plan in the database cache. 
+
+But if you are using a SQL query like SELECT * FROM emp where empid = " + @eid and supply a parameter (say 100), 
+then the cache will keep the execution plan for the value of 100 only. If the id changes (to say 101), 
+it will recompile the statement. Hence, this approach is slower than the previous one. 
+(You can get the exact value of the SQL statement from Profiler)
+
+5. Fully Qualified Names - Always use the fully qualified name when calling stored procedures. 
+This would be the format database_name.schema_name.table_name. 
+For example, use EXEC master.dbo.Your_Proc_name instead of EXEC Your_Proc_name 
+This is a very common mistake, which causes an extra trip to the procedure cache to get the execution plan for execution. 
+Also try to use the schema name while creating a procedure. Like: CREATE PROCEDURE dbo.Your_Proc_name instead of CREATE PROCEDURE Your_Proc_name
+
+6.SET NOCOUNT ON - This suppresses the message that shows number of rows affected by SQL statement. 
+Otherwise this can cause extra network traffic and can have some serious impact on performance when the procedure is called frequently.
+
+Update: I would recommend you to use SET NOCOUNT ON for the shake of performance unless there is a very good reason for using it.
+
+7. The sp_ prefix - Don't use the "sp_" prefix in a stored procedure name as the "sp_" prefix is reserved for system stored procedures. 
+Any stored procedure that has the "sp_" prefix will cause an extra lookup in the MASTER database 
+If a stored procedure uses same name in both the user database and a system database, 
+the stored procedure in the user database will execute but first it will find the procedure in resource database and then the user database (for SQL server 2005) 
+hence causing an extra burden to the server.
+
+8.sp_executeSQL and the KEEPFIXED PLAN options- Both sp_executesql and the KEEPFIXED PLAN option avoid the recompilation of a stored procedure. If you want to provide parameterized dynamic SQL, then go for sp_executesql instead of EXEC(proc_name). Here the execution plan for the procedure is stored with the variable name in cache memory. When the variable values are supplied, then the values are simply mapped to the query, hence no need for a recompilation.
+
+Update: Keep in mind that recompilations are not always bad. Sometimes, using an old and inefficient plan can make the procedure more slower.
+
+Use the OPTION KEEPFIXED PLAN hint while selecting records from temporary tables. If the query contains this hint, then its plan is not recompiled. For more information about procedure recompilation, please go through the following article: http://technet.microsoft.com/en-us/library/cc966425.aspx
+
+CREATE PROCEDURE my_proc
+AS
+CREATE TABLE #t (a int )
+SELECT * FROM #t
+INSERT #t SELECT * from retest
+SELECT COUNT(*) FROM #t WHERE a = 37
+OPTION (KEEPFIXED PLAN)
+As an example of sp_executesql, we can write:
+
+sp_executesql N'SELECT * FROM mydb.dbo.emp where empid = @eid', N'@eid int', @eid=40
+
+9. SELECT vs SET - A single SELECT statement can assign values to different variables and is much faster 
+than multiple SET statements assigning values to multiple different variables.
+
+SELECT @Var1 = @Var1 + 1, @Var2 = @Var2 - 1
+instead of
+
+SET @Var1 = @Var1 + 1
+SET @Var2 = @Var2 - 1
+10. WHERE clauses - In a WHERE clause, the various operators used directly affect how fast a query can run. 
+Here are the conditional operators used in the WHERE clause, ordered by their precedence.
+
+=, >, <, >=, <=, <>, !=, !>, !<
+
+for details, refer to the article: http://msdn.microsoft.com/en-us/library/ms190276.aspx
+
+11. More WHERE clause hints - Avoid unnecessary conditions in the WHERE Clause. 
+Also try to avoid a function in the WHERE clause as it presents SQL engine to do index seek. 
+Even it forces SQL full index scans or even table scans.
+
+Also, try to avoid IN. While checking the existence of some values, then use EXISTS instead of IN. 
+IN counts the NULL values also, but EXISTS not. EXISTS returns Boolean(Yes/No) but 
+IN returns all values hence result set for IN is heavier than EXISTS.
+
+Here, teacher and student table has 1:m relationship and I want to find the teachers who have students. 
+Both the queries have the same result but the second query will run faster because of EXISTS operator.
+
+SELECT name 
+FROM teacher
+WHERE teacher_id IN (SELECT teacher_id FROM student)
+SELECT name
+FROM teacher
+WHERE EXISTS (SELECT 1 FROM student 
+  where teacher.teacher_id = student.teacher_id)
+
+12.CAST and CONVERT - Try to use CAST instead of CONVERT. CAST is ANSI-92 standard but CONVERT works in MS SQL server only. 
+Also, some CONVERT styles may be deprecated in future MS SQL releases. It is better to use CONVERT only when you need 
+to format the DATETIME datatype with the style option. CAST cannot do this.
+
+Reference: http://msdn.microsoft.com/en-us/library/ms187928.aspx
+
+13. Avoid DISTINCT and ORDER BY - If you don't need the DISTINCT/ORDER BY clause, then try to avoid so. 
+Unnecessary DISTINCT or ORDER BY clauses cause extra work for the database engine. 
+Hence making performance slower. (Sometimes ORDER BY helps to speed up the operation).
+
+14. Avoid using cursors - Using cursors make the program slower as it works against SET based SQL. 
+Try to use temporary table/table variables with identity column and then iterate all the tables using WHILE loop and a looping counter, 
+which will map with the identity column. For details, refer to my previous article.
+
+15. SELECT statements - Try to use only the required number of columns in the SELECT clause instead of using *. Using * returns all columns, 
+which unnecessarily create a fat recordset.
+
+16. Subquery vs JOINs - This is a famous debate in many online forums. In fact most sub queries can be expressed as an equivalent form of JOIN. 
+I have a good rule of thumb: subquery is faster when we have to retrieve data from large number of tables because it becomes tedious to join more tables. J
+OIN is faster to retrieve data from database when we have less number of tables.
+But try to avoid correlated sub queries because it makes the query much slower.
+
+
+17.CREATE TABLE vs. SELECT INTO - Select * INTO works fine for small tables,
+but when dealing with large record sets or long-running queries, it creates locks on the system objects within the tempdb database. 
+As a result, other queries and procedures that need to create objects within the tempdb database will have to wait for the long-running query to complete. 
+This is because when an object is created, an exclusive lock is taken against the sysobjects, syscolumns, sysindexes tables.
+
+Update: This problem has been greatly reduced from the MS SQL 7.0. For more details, 
+please refer to the following article:http://support.microsoft.com/kb/153441/EN-US/
+
+Also, SELECT INTO not only copies data but also it copies the table structure, hence it performs slower.
+
+18. Try to use table variables instead of Temporary Tables - Temp tables can cause stored procedures to recompile. 
+(From SQL 2005, using temporary table not always causing recompilations. But adding rows to temporary tables may cause recompilations). 
+But table variables were designed specifically to guard against stored procedure recompiles during execution.
+
+If the result set is not containing a huge number of records then you should stick to table variable, otherwise temp table has its advantages. There is a misconception that temp tables always use the tembdb database but table variable do not. Table variables also use tempdb after a certain size. For more information refer to the following article : http://www.sqlservercentral.com/articles/Temporary+Tables/66720/
+
+19.Use proper indexes - You can use the help of the data tuning advisor, but it does not gives the proper result all the time. 
+Index scans and index seeks are much faster than table scans. So identify the table scans from the execution plans. But when a table returns smaller number rows, 
+then it is better to use a table scan. You can see an excellent article on execution plans by G Vijayakumara at the following 
+link: http://www.sqlservercentral.com/articles/Administration/executionplans/1345/
+
+20. Use Profiler - The cachemiss event class indicates that the stored procedure is not in the cache. If the SP:Cachemiss class occurs frequently, 
+it can indicate that more memory should be available to MS SQL server, thereby increasing the size of procedure cache. The cachehit event class indicates 
+that a stored procedure is in the cache.
+
+Last but not the least, again I am repeating the same advice from my previous article. Keep these guidelines in your mind, 
+but don't hesitate to break them if needed. After all, performance is the ultimate goal. If violating the general rule gives you 
+good performance (it may happen based on your database environment) then don't stick with the guidelines. Always use the trace 
+files to get the performance statistics and then apply the changes.
+
+
+
+
+qns 44 disadvantage of using dynamic query ? 
+https://www.c-sharpcorner.com/article/why-dynamic-query-is-bad/
+ans: What is Dynamic Query?
+
+Dynamic SQL query is a set of SQL statements stored in a variable. We can create so many variable queries and easily join them to get the results.
+
+We can create DDL and DML statement together in one procedure also.
+
+For example -
+
+CREATE OR ALTER PROCEDURE GeneralCreate  
+@TableName varchar(30), @id varchar(5) AS  
+DECLARE @query varchar(1000), @query2 varchar(1000)  
+SET @query = 'CREATE TABLE ' + @TableName + '(' + @id + ' int )'  
+PRINT @query  
+SET @query2 = 'INSERT INTO ' + @TableName + ' VALUES('  
+'123'  
+')'  
+PRINT @query2  
+
+
+Advantages of Dynamic Query
+-------------------------------
+1) It reduces the work of programmers a lot. They don’t need to write separate procedure/function anymore. 
+Thus, a lot of flexibility is provided. Based on the list of input, the query is built.
+2) Performance is improved as better execution plan is generated which handles control of flow and has 
+multiple SELECT statements, especially if sp_executesql is used which obtains parameterized queries.
+It is more likely that the execution plan is re-used.
+
+Consider the following code for the general SELECT query.
+
+Create OR Alter Procedure GenericTableSelect  
+@TableName VarChar(100)  
+AS  
+Declare @SQL VarChar(1000)  
+SELECT @SQL = 'SELECT * FROM '  
+SELECT @SQL = @SQL + @TableName  
+print @SQL  
+exec GenericTableSelect Employee  
+
+
+Disadvantage of Dynamic Query
+------------------------------
+1) It is vulnerable to SQL injection which could hamper the security a lot.
+   Security - depending on your implementation you open yourself to SQL Injection and you may have to grant direct access to the tables.
+
+2) It is very complex in nature as the query plan is built on the fly. It is difficult to understand how the query is going to form.
+3) If sp_executesql is not used for calling the procedure, then the execution plan cannot be reused.
+
+
+
+qns 45 difference b/w temp table and table variable ?
+ans: There are a few differences between Temporary Tables (#tmp) and Table Variables (@tmp):
+ 
+   
+Table Variables (@tmp):
+-----------------------
+1) for small to medium volumes of data and simple usage scenarios you should use table variables.
+  Table variables can have indexes by using PRIMARY KEY or UNIQUE constraints.
+
+2) Table variable: But the table variable can be used by the current user only. 
+
+3)Table variable: But a table variable will store in the physical memory for some of the data, 
+then later when the size increases it will be moved to the tempdb.
+
+4) Table variable: Whereas table variable won't allow doing the DDL operations. 
+  But the table variable allows us to create the clustered index only.
+
+5) Table variable: 
+Demo 1: Table variables doesn’t participate in the explicit transactions defined by the user.
+
+--Declare Table Variable 
+DECLARE @TableVariableTransactionDemo TABLE (Name VARCHAR(50)) 
+--Start the Transaction
+BEGIN TRAN
+   --Insert a Record in the Table Variable
+   INSERT INTO  @TableVariableTransactionDemo
+   VALUES ('Basavaraj Biradar')
+   --Rollback the Transaction
+ROLLBACK TRAN
+--Verify the records in the Table Variable
+SELECT * FROM @TableVariableTransactionDemo
+GO
+RESULT: ROLLBACK TRAN statement didn’t revert back the record inserted in the Table variable within a Transaction.
+
+
+
+6) Table variable: Whereas the table variable won't do like that.
+
+
+example:
+Table Variable
+This acts like a variable and exists for a particular batch of query execution. 
+It gets dropped once it comes out of batch. This is also created in the Tempdb database but not the memory. 
+This also allows you to create primary key, identity at the time of Table variable declaration but not non-clustered index.
+
+ GO
+ DECLARE @TProduct TABLE
+ (
+ SNo INT IDENTITY(1,1),
+ ProductID INT,
+ Qty INT
+ ) 
+ --Insert data to Table variable @Product 
+ INSERT INTO @TProduct(ProductID,Qty)
+ SELECT DISTINCT ProductID, Qty FROM ProductsSales ORDER BY ProductID ASC 
+ --Select data
+ Select * from @TProduct
+ 
+ --Next batch
+ GO
+ Select * from @TProduct --gives error in next batch
+
+
+Temporary Tables (#tmp):
+------------------------
+1) Temporary Tables are real tables so you can do things like CREATE INDEXes, etc. 
+  If you have large amounts of data for which accessing by index will be faster then temporary tables are a good option.
+
+2) Temp table: Temp table result can be used by multiple users.
+
+3)Temp table: Temp table will be stored in the tempdb. It will make network traffic. 
+When we have large data in the temp table then it has to work across the database. 
+A Performance issue will exist.
+
+4) Temp table: Temp table can do all the DDL operations. It allows creating the indexes, dropping, altering, etc..,
+
+  example
+--Create Temporary Table
+CREATE TABLE #Customer ( Id INT, Name VARCHAR(50))
+--Add Address Column to the #Customer
+ALTER TABLE #Customer ADD Address VARCHAR(400)
+GO
+
+
+5) Temp table: Temp table can be used in the transactions. 
+   When we do the DML operations with the temp table then it can be rollback or commit the transactions.
+
+Temporary Table
+Demo 1: Table variables doesn’t participate in the explicit transactions defined by the user.
+
+--Create Temporary Table 
+CREATE TABLE #TemporaryTableTransactionDemo (Name VARCHAR(50)) 
+--Start the Transaction
+BEGIN TRAN
+   --Insert a Record in the Temporary Table
+   INSERT INTO  #TemporaryTableTransactionDemo
+   VALUES ('Basavaraj Biradar')
+  --Rollback the Transaction
+ROLLBACK TRAN
+--Verify the records in the Temporary Table
+SELECT * FROM #TemporaryTableTransactionDemo
+GO
+RESULT: ROLLBACK TRAN statement reverted back the record which is inserted in the Temporary Table within a Transaction.
+
+6) Temp table: The stored procedure will do the recompilation (can't use same execution plan)
+   when we use the temp variable for every sub sequent calls.
+
+
+
+
+Note:Global Temp Table
+----------------------
+Global temp tables are available to all SQL Server sessions or connections (means all the user). 
+These can be created by any SQL Server connection user and these are automatically deleted when all the SQL Server 
+connections have been closed. Global temporary table name is stared with double hash ("##") sign.
+
+CREATE TABLE ##GlobalTemp
+(
+ UserID int,
+ Name varchar(50), 
+ Address varchar(150)
+)
+GO
+insert into ##GlobalTemp values ( 1, 'Shailendra','Noida');
+GO
+Select * from ##GlobalTemp
+
+
+
+
+Note: Local Temp Table
+------------------------
+Local temp tables are only available to the SQL Server session or connection (means single user) that created the tables. 
+These are automatically deleted when the session that created the tables has been closed. Local temporary table name is stared with single hash ("#") sign.
+
+CREATE TABLE #LocalTemp
+(
+ UserID int,
+ Name varchar(50), 
+ Address varchar(150)
+)
+GO
+insert into #LocalTemp values ( 1, 'Shailendra','Noida');
+GO
+Select * from #LocalTemp
+
+The scope of Local temp table exist to the current session of current user means to the current query window. 
+If you will close the current query window or open a new query window and will try to find above created temp table, it will give you the error.
+
+http://sqlhints.com/tag/temporary-tables-participate-in-transactions/
+
+
+
+qns 46: execution plan and its type ?
+ans: SQL Server query execution plans are very useful in query performance analysis and troubleshooting. 
+  There are two types of query execution plans in SQL Server:
+    actual and estimated. 
+    They show how a query was executed and how it will be executed.
+
+
+or
+
+Execution Plan Types 1/2 
+
+Actual Execution Plan - (CTRL + M) - is created after execution of the query and contains the steps that were performed
+Estimated Execution Plan - (CTRL + L) - is created without executing the query and contains an approximate execution plan
+
+
+Execution Plan Types 2/2 
+• Textual Execution Plan – Depricated in further versions of SQL Server 
+• XML based Execution Plan – Very good for further analysis – Can be queried 
+• Graphic Execution Plan – Uses internally the XML based Execution Plan 
+
+
+
+https://www.sqlshack.com/sql-server-query-execution-plans-examples-select-statement/
+https://www.mssqltips.com/sqlservertutorial/285/query-execution-plans/
+https://www.mssqltips.com/sqlservertip/1856/sql-server-query-execution-plans-in-sql-server-management-studio/
+
+
+
+
+
+
+qns 47  Client Statistics, Ressult to Text, Result to File, Result to Grid  options by sql server?	
+ans 
+Client Execution Time	23:00:26		
+Query Profile Statistics			
+  Number of INSERT, DELETE and UPDATE statements	0		0.0000
+  Rows affected by INSERT, DELETE, or UPDATE statements	0		0.0000
+  Number of SELECT statements 	2		2.0000
+  Rows returned by SELECT statements	206		206.0000
+  Number of transactions 	0		0.0000
+Network Statistics			
+  Number of server roundtrips	3		3.0000
+  TDS packets sent from client	3		3.0000
+  TDS packets received from server	541		541.0000
+  Bytes sent from client	234		234.0000
+  Bytes received from server	2206503		2206503.0000
+Time Statistics			
+  Client processing time	20		20.0000
+  Total execution time	21		21.0000
+  Wait time on server replies	1		1.0000
+
+select result to text:
+and execute : select * from tblEmp
+
+id          name                                               email                                              code                                               gender     salary      dob                     modifyDateTime
+----------- -------------------------------------------------- -------------------------------------------------- -------------------------------------------------- ---------- ----------- ----------------------- -----------------------
+1           viratkp                                            viratkp@test.com                                   virat123                                           male       2500        1980-12-02 00:00:00.000 2018-08-23 19:52:46.763
+3           sara999                                            sara999@test.com                                   sara999                                            female     2500        1980-12-02 00:00:00.000 2018-08-22 20:51:47.837
+4           John                                               john@test.com                                      john123                                            male       3500        1985-10-05 00:00:00.000 NULL
+5           Bobb                                               bobb@test.com                                      bobb123                                            male       4500        1985-10-12 00:00:00.000 NULL
+6           ruby                                               ruby@test.com                                      rub123                                             female     5500        1978-10-03 00:00:00.000 NULL
+7           amar                                               amar@test.com                                      amar123                                            male       5500        2018-08-18 00:00:00.000 NULL
+8           sara                                               sara@test.com                                      sara123                                            female     2500        1980-12-02 00:00:00.000 NULL
+24          virat                                              virat@test.com                                     virat123                                           male       2500        1980-12-02 00:00:00.000 2018-08-22 22:56:57.480
+25          michael                                            michael@test.com                                   michael123                                         male       2500        1980-12-02 00:00:00.000 NULL
+26          michael2                                           michael2@test.com                                  michael2123                                        male       2500        1980-12-02 00:00:00.000 NULL
+27          michael3                                           michael3@test.com                                  michael3123                                        male       2500        1980-12-02 00:00:00.000 NULL
+
+(11 row(s) affected)
+
+
+select result to Grid:
+and execute : select * from tblEmp
+
+id	name	email	code	gender	salary	dob	modifyDateTime
+1	viratkp	viratkp@test.com	virat123	male	2500	1980-12-02 00:00:00.000	2018-08-23 19:52:46.763
+3	sara999	sara999@test.com	sara999	female	2500	1980-12-02 00:00:00.000	2018-08-22 20:51:47.837
+4	John	john@test.com	john123	male	3500	1985-10-05 00:00:00.000	NULL
+5	Bobb	bobb@test.com	bobb123	male	4500	1985-10-12 00:00:00.000	NULL
+6	ruby	ruby@test.com	rub123	female	5500	1978-10-03 00:00:00.000	NULL
+7	amar	amar@test.com	amar123	male	5500	2018-08-18 00:00:00.000	NULL
+8	sara	sara@test.com	sara123	female	2500	1980-12-02 00:00:00.000	NULL
+24	virat	virat@test.com	virat123	male	2500	1980-12-02 00:00:00.000	2018-08-22 22:56:57.480
+25	michael	michael@test.com	michael123	male	2500	1980-12-02 00:00:00.000	NULL
+26	michael2	michael2@test.com	michael2123	male	2500	1980-12-02 00:00:00.000	NULL
+27	michael3	michael3@test.com	michael3123	male	2500	1980-12-02 00:00:00.000	NULL
+
+select result to File:
+and execute : select * from tblEmp
+
+you can use this option to save your data to a file
+
+qns 48: what is recursive query in sql and recursive function?
+ans:  means recursive CTE
+
+ How does a recursive cte work?
+
+example 1: to get the subordinate for any employee under the organition
+ 
+declare @id int;
+set @id=7;
+
+ WITH
+  cteReports (EmpID, Name, MgrID, Level)
+  AS
+  (
+    // anchor
+    SELECT EmployeeID, Name, ManagerID, 1
+    FROM Employees
+    --WHERE ManagerID IS NULL
+    --WHERE ManagerID = @id
+
+    UNION ALL
+
+    // recurcive member
+    SELECT e.EmpID, e.Name, e.MgrID, 
+      r.EmpLevel + 1
+    FROM Employees e
+      INNER JOIN cteReports r
+        ON e.MgrID = r.EmpID
+
+  )
+
+SELECT  Emp.Name as [Employee Name], 
+        Manager.Name as [Manager Name], 
+        Level        
+    FROM cteReports Emp
+    left join cteReports Manager
+    on Emp.MgrID = Manager.EmpID
+    ORDER BY Level
+
+working steps-
+
+  step 1: execute the anchor part and get the result RO
+  step 2: execute the recursive member using the R0 as input and generate result R1
+  step 3: execute the recursive member using the R1 as input and generate result R2
+  step 4: recursion goes on until the recursive member output becomes null
+  step 5: finally apply the union all to get the complete result.
+ 
+
+
+example: 2
+ WITH
+  cteReports (EmpID, FirstName, LastName, MgrID, EmpLevel)
+  AS
+  (
+    SELECT EmployeeID, FirstName, LastName, ManagerID, 1
+    FROM Employees
+    WHERE ManagerID IS NULL
+
+    UNION ALL
+
+    SELECT e.EmployeeID, e.FirstName, e.LastName, e.ManagerID, 
+      r.EmpLevel + 1
+    FROM Employees e
+      INNER JOIN cteReports r
+        ON e.ManagerID = r.EmpID
+
+  )
+
+SELECT  FirstName + ' ' + LastName AS FullName, 
+        EmpLevel,
+        (SELECT FirstName + ' ' + LastName FROM Employees WHERE EmployeeID = cteReports.MgrID) AS Manager
+FROM cteReports 
+ORDER BY EmpLevel, MgrID
+
+
+
+
+
+
+
+qns 49: create the schema for booking a table in an bars based on these conditions.
+     maximum number of user per activtity = 100;
+     day by time slot duration
+     govt hoiliday off
+     particular day off based on the indivisual org
+     
+
+Qns 50: query using global variables
+select *, @@ROWCOUNT,@@SERVERNAME, @@SERVICENAME from Employee
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

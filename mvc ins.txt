@@ -1,0 +1,116 @@
+
+
+qns 1: what-is-an-advantage-to-using-first-chance-exception-notification
+ans: The ability to log an exception before it is touched by any other error handler
+
+qns 2: What type of authentication accepts login credentials that will be checked against the domain or 
+       local server and are sent in a hashed format?
+ans:  
+Digest authentication
+ is a challenge-response–based authentication method to ensure that user credentials are not sent over the network in clear text.
+
+
+qns 3: You are writing an action method called AddProduct inside the Product controller. 
+The logic in your code indicates that you need to call the Cart controller’s Add method as a result of your controller’s action method.
+ Which line of code would accomplish this? 
+
+return Content("Cart.Add")
+Response.Redirect("Cart.aspx?Add")
+return redirect("Cart/Add")
+return View("Cart.Add")
+
+ans: return redirect("Cart/Add")
+
+qns 5: If you have View with @Page directive to inherit from ViewPage<TModel> then your View is_________.(where TModel is typpe of Model) 
+Partial View
+Strongly Typed View
+Content View
+Template View
+
+ans : Strongly Typed View
+
+
+qns 6: Which of the following statement is false about MVC in .NET?
+Complete control over your HTML Markup
+Makes Test Driven Development (TDD) very difficult
+Allows you to create SEO-friendly URLs for your site
+Enables rich AJAX and jQuery integration
+
+ans: Makes Test Driven Development (TDD) very difficult
+
+
+
+qns: 7 Which Helper Method Returns binary output to write to the response?
+Content
+File
+JavaScript
+Json
+
+ans: File
+
+qns 8: Which Helper Method is used to return a user-defined content type.
+Content
+JavaScript
+View
+RedirectToRoute
+
+ans: Content
+
+read all question using below link
+http://sagarphalke.blogspot.com/2013_11_29_archive.html
+https://www.tutorialspoint.com/mvc_framework/mvc_framework_mock_test.htm?min=76&max=100
+https://www.indiabix.com/c-sharp-programming/attributes/
+
+
+qns 9: Which methods help the RoleProvider determine whether a user is assigned a role or set of roles? (Choose all that apply.)
+
+A. GetRoles
+B. GetRolesForUser 
+C. IsUserInRole 
+D. FindUsersInRole
+Answer:
+BC
+Explanation
+A. Incorrect: The GetRoles method provides a list of all roles for an ApplicationName.
+B. Correct: GetRolesForUser gets a list of roles for a user.
+C. Correct: IsUserInRole returns a Boolean on whether a particular user has a role.
+D. Incorrect: FindUsersInRole returns a list of users that have the applicable role. 
+
+
+qns 10 how to check request is comming from which controller?
+ans: var controller = (string)this.RouteData.Values["controller"];
+var action = (string)this.RouteData.Values["action"];
+
+qns: 11 What default attributes or inline checks would you use to create an accepted-list scenario in ASP.NET MVC 4? 
+
+A. Authorize attribute 
+B. RequireHttps attribute
+C. WebSecurity.IsAuthenticated
+D. AllowAnonymous attribute 
+Answer:
+AD
+Explanation
+A. Correct: AuthorizeAttribute can be put on controllers and actions to require au­thorization.
+B. Incorrect: RequireHttps will ensure that the communication between client and server is encrypted, 
+              but it does not do anything to help ensure an accepted-list scenario.
+C. Incorrect: WebSecurity.IsAuthenticated verifies that a user is authenticated, 
+              but it does not do it in a way that supports an accepted-list scenario.
+D. Correct: AllowAnonymous can be put on controllers and actions to enable unau­thorized users access. 
+
+
+qns 12: How to skip action execution from an ActionFilter?
+ans: You can use filterContext.Result for this. It should look like this:
+
+public override void OnActionExecuting(ActionExecutingContext filterContext)
+{
+    //Check your condition here
+    if (true)
+    {
+        //Create your result
+        filterContext.Result = new EmptyResult();
+    }
+    else
+        base.OnActionExecuting(filterContext);
+}
+
+

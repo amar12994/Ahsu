@@ -1,0 +1,1650 @@
+https://angular.io
+
+Qns 1: What is AngularJS 2/4?
+ans: Angular 2/4 is an open-source front-end web application platform, 
+     written in type script, created by google development team.
+
+Or
+
+What is Angular 2?
+AngularJS is a framework to build large scale and high performance web application while 
+keeping them as easy-to-maintain. Following are the features of AngularJS framework.
+
+Components - The earlier version of Angular had a focus of Controllers 
+but now has changed the focus to having components over controllers. 
+Components help to build the applications into many modules. 
+This helps in better maintaining the application over a period of time.
+
+TypeScript - The newer version of Angular is based on TypeScript. 
+This is a superset of JavaScript and is maintained by Microsoft.
+
+Services - Services are a set of code that can be shared by different components of an application. 
+So for example if you had a data component that picked data from a database, 
+you could have it as a shared service that could be used across multiple applications.
+
+
+
+Qns 2: interpolation in angular 2
+ans: {{ }} interpolation resolved expression in angular 2
+
+{{ foo }} will be handled by the template engine of Angular, binding the foo property defined in your class.
+
+${ bar } will be handled by the Javascript string interpolation, which, while rendering, have no clue of what 
+is the property bar of your object.
+
+This is something closely related to how Angular work, this is not related to typescript or 
+anything else. You can still use ${} if you are not in your Angular project, or not in the template.
+
+For example, something like this should work, since the expression is evaluated before 
+being returned, and is not dependant of the template engine:
+
+public getUsername(): string {
+    let username = 'test';
+    return `Hi ${username}`;
+}
+
+
+
+
+
+Qns: 3: Sharing Data Between Angular Components 
+ans - Four Methods
+help url
+https://angularfirebase.com/lessons/sharing-data-between-angular-components-four-methods/
+
+1). Parent to Child: Sharing Data via Input
+
+//parent.component.ts
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-parent',
+  template: `
+    <app-child [childMessage]="parentMessage"></app-child>
+  `,
+  styleUrls: ['./parent.component.css']
+})
+export class ParentComponent{
+  parentMessage = "message from parent"
+  constructor() { }
+}
+
+
+//child.component.ts
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-child',
+  template: `
+      Say {{ childMessage }}
+  `,
+  styleUrls: ['./child.component.css']
+})
+export class ChildComponent {
+
+  @Input()
+  childMessage: string;
+
+  constructor() { }
+
+}
+
+
+
+2). Child to Parent: Sharing Data via ViewChild
+
+ViewChild allows a one component to be injected into another, 
+giving the parent access to its attributes and functions. 
+however, is that child won’t be available until after the view has been initialized. 
+This means we need to implement the AfterViewInit lifecycle hook to receive the data from the child.
+
+//parent.component.ts
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { ChildComponent } from "../child/child.component";
+
+@Component({
+  selector: 'app-parent',
+  template: `
+    Message: {{ message }}
+    <app-child></app-child>
+  `,
+  styleUrls: ['./parent.component.css']
+})
+export class ParentComponent implements AfterViewInit {
+
+  @ViewChild(ChildComponent) child;
+
+  constructor() { }
+
+  message:string;
+
+  ngAfterViewInit() {
+    this.message = this.child.message
+  }
+}
+
+//child.component.ts
+import { Component} from '@angular/core';
+
+@Component({
+  selector: 'app-child',
+  template: `
+  `,
+  styleUrls: ['./child.component.css']
+})
+export class ChildComponent {
+
+  message = 'Hola Mundo!';
+
+  constructor() { }
+
+}
+
+// 3). Child to Parent: Sharing Data via Output() and EventEmitter
+//Another way to share data is to emit data from the child, which can be listed to by the parent.
+//This approach is ideal when you want to share data changes that occur on things like button clicks,
+//form entires, and other user events. In the parent, we create a function to receive the message
+//and set it equal to the message variable.In the child, we declare a messageEvent variable with 
+//the Output decorator and set it equal to a new event emitter.Then we create a function named 
+//sendMessage that calls emit on this event with the message we want to send.Lastly, we create a
+//button to trigger this function.The parent can now subscribe to this messageEvent that’s outputted
+//by the child component, then run the receive message function whenever this event occurs.
+
+
+import { Component } from '@angular/core';
+
+@Component({
+    selector: 'ng-component',
+    template: `
+    Message: {{message}}
+    <app-child (messageEvent)="receiveMessage($event)"></app-child>
+  `,
+   // styleUrls: ['./parent.component.css']
+})
+export class ParentComponent {
+
+    constructor() { }
+
+    message: string;
+
+    receiveMessage(msg: string) {
+        this.message = msg;
+    }
+}
+
+
+
+import { Component, Output, EventEmitter } from '@angular/core';
+
+@Component({
+    selector: 'app-child',
+    template: `
+      <button (click)="sendMessage()">Send Message</button>
+  `,
+    //styleUrls: ['./child.component.css']
+})
+export class ChildComponent {
+
+    message: string = "this message is comming from child component"
+
+    @Output()
+    messageEvent = new EventEmitter<string>();
+
+    constructor() { }
+
+    sendMessage() {
+        this.messageEvent.emit(this.message)
+    }
+}
+
+
+
+
+
+4). Unrelated Components: Sharing Data with a Service
+
+When passing data between components that lack a direct connection, 
+such as siblings, grandchildren, etc, you should you a shared service. 
+When you have data that should aways been in sync, I find the RxJS BehaviorSubject very useful in this situation.
+
+You can also use a regular RxJS Subject for sharing data via the service, but here’s why I prefer a BehaviorSubject.
+It will always return the current value on subscription - there is no need to call onnext
+It has a getValue() function to extract the last value as raw data.
+It ensures that the component always receives the most recent data.
+In the service, we create a private BehaviorSubject that will hold the 
+current value of the message. We define a currentMessage variable handle 
+this data stream as an observable that will be used by the components. 
+Lastly, we create function that calls next on the BehaviorSubject to change its value.
+
+The parent, child, and sibling components all receive the same treatment. 
+We inject the DataService in the constructor, then subscribe to the currentMessage 
+observable and set its value equal to the message variable.
+
+Now if we create a function in any one of these components that changes the value of the message. 
+when this function is executed the new data it’s automatically broadcast to all other components.
+
+
+// ParentComponent
+import { Component, OnInit } from '@angular/core';
+import { DataService } from "./data.service";
+
+@Component({
+    selector: 'ng-component',
+    template: `
+    {{message}}
+    <app-sibling></app-sibling>
+  `,
+   providers: [DataService] // register data service to angular di system
+   // styleUrls: ['./sibling.component.css']
+})
+export class ParentComponent implements OnInit {
+    message: string;
+    constructor(private _dataService: DataService) { }
+
+    ngOnInit() {
+        this._dataService.currentMessage.subscribe(message => this.message = message)
+    }
+
+}
+
+// SiblingComponent 
+import { Component, OnInit } from '@angular/core';
+import { DataService } from "./data.service";
+
+@Component({
+    selector: 'app-sibling',
+    template: `
+    {{message}}
+    <button (click)="newMessage()">New Message</button>
+  `,
+   providers: [DataService] // register data service to angular di system
+    //styleUrls: ['./sibling.component.css']
+})
+export class SiblingComponent implements OnInit {
+
+    message: string;
+
+    constructor(private data: DataService) { }
+
+    ngOnInit() {
+        this.data.currentMessage.subscribe(message => this.message = message)
+    }
+
+    newMessage() {
+        this.data.changeMessage("Hello from Sibling")
+    }
+
+}
+
+
+
+// DataService 
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+
+@Injectable()
+export class DataService {
+
+    private messageSource = new BehaviorSubject('default message');
+    currentMessage = this.messageSource.asObservable();
+
+    constructor() { }
+
+    changeMessage(message: string) {
+        this.messageSource.next(message)
+    }
+
+}
+Or
+
+
+
+
+
+my practice example:
+
+employee.service.ts code
+
+import { Injectable } from '@angular/core';
+import { IEmployee } from './employee';
+import { Http, Response } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/Observable/throw';
+
+@Injectable()
+export class EmployeeService {
+
+    constructor(private _http: Http) {
+    }
+ 
+    getEmployeeList(): Observable<IEmployee[]> {
+        return this._http.get('http://localhost:65188/api/employee')
+            .map((response: Response) => <IEmployee[]>response.json())
+            .catch(this.handleError);
+    }
+
+    getEmployeeByCode(code: string): Observable<IEmployee> {
+        return this._http.get('http://localhost:65188/api/employee/' + code)
+            .map((response: Response) => <IEmployee>response.json())
+            .catch(this.handleError);
+    }
+
+    handleError(error: Response) {
+        console.error(error);
+        return Observable.throw(error);
+    }
+}
+
+
+
+employee.ts code 
+
+// interfaces in angular 2 
+// get intelligence and complile time error i.e. strongly type model
+export interface IEmployee {
+    code: string;
+    name: string;
+    gender: string;
+    email: string;
+    dob: string;
+    salary: number;
+}
+
+
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
+import { HttpModule } from '@angular/http';
+import { RouterModule, Routes } from '@angular/router';
+
+import { AppComponent } from './app.component';
+//import { ParentComponent } from './Sharing Data/parent.component';
+//import { ChildComponent  } from './Sharing Data/child.component';
+//import { SiblingComponent  } from './Sharing Data/sibling.component';
+//import { DataService } from './Sharing Data/data.service'
+//import { LifeCycleHookComponent } from './lifeCycleHooks/lifecyclehooks.component'
+//import { ChildComponent } from './lifeCycleHooks/child.component';
+import { EmployeeComponent } from './employee/employee.component';
+import { EmployeeListComponent } from './employee/employeeList.component';
+import { StudentComponent } from './students/students.component';
+import { EmployeeTitlePipe } from './employee/employeeTitle.pipes';
+import { EmployeeCountComponent } from './employee/employee.count.component';
+import { SimpleComponenet } from './Others/simple.component';
+import { HomeComponent } from './home/home.component';
+import { UnauthorizedComponent } from './Others/unauthorized.component';
+import { PageNotFoundComponent } from './Others/pagenotfound.component';
+import { EmployeeService } from './employee/employee.service';
+
+const appRoutes: Routes = [
+    // route searching start from the top to bottom
+    { path: 'home', component: HomeComponent },
+    { path: 'employees/:code', component: EmployeeComponent },
+    { path: 'unauthorized', component: UnauthorizedComponent },
+    { path: 'students', component: StudentComponent },
+    { path: '', redirectTo: '/home', pathMatch: 'full' },// base url
+    { path: '**', component: PageNotFoundComponent }, // route that does not exist in our application
+];
+
+@NgModule({
+    imports: [BrowserModule, FormsModule, HttpModule,
+        RouterModule.forRoot(
+            appRoutes
+           // , { enableTracing: true } // <-- debugging purposes only
+        )],
+    declarations: [
+        //// data sharing concept between angular components
+        // ParentComponent,
+        // ChildComponent,
+        // SiblingComponent,
+
+        // life cycle hooks demo
+        // LifeCycleHookComponent,
+
+        // either bootstrap from AppComponent to other functionility
+        AppComponent,  EmployeeComponent, EmployeeListComponent,
+        EmployeeTitlePipe, EmployeeCountComponent, SimpleComponenet,
+        HomeComponent, PageNotFoundComponent, UnauthorizedComponent,
+        StudentComponent
+    ],
+    //bootstrap: [ParentComponent],
+    //bootstrap: [LifeCycleHookComponent],
+    bootstrap: [AppComponent],
+
+    
+    // register employee service to angular di system at global level
+    providers: [EmployeeService]
+})
+export class AppModule { }
+
+
+use of employee service
+
+import { Component, OnInit } from '@angular/core';
+import { IEmployee } from './employee';
+import { EmployeeService } from './employee.service';
+
+@Component({
+    selector: 'emp-list',
+    templateUrl: 'app/employee/employeeList.component.html',
+    styleUrls: ['app/employee/employeeList.component.css'],
+
+    // move to app.module for working in multiple places
+    // providers: [EmployeeService] // register employee service to angular di system
+})
+export class EmployeeListComponent implements OnInit {
+
+    employees: IEmployee[];
+
+    private _employeeService: EmployeeService;
+    constructor(_employeeService: EmployeeService) {
+        this._employeeService = _employeeService;
+    }
+
+
+    ////or di in angular
+    //constructor(private _employeeService: EmployeeService) {
+    //}
+
+    ngOnInit() {
+        this._employeeService.getEmployeeList()
+            .subscribe(
+                         (employeeData) => this.employees = employeeData,
+                         
+                         (error) => {
+                             this.statusMessage = "Problem with the service please try again later";
+                             console.error(error);
+                         }
+            );
+    }
+
+}
+
+
+// router demo
+
+<div style="padding:5px">
+                  <ul class="nav nav-tabs">
+                         <li routerLinkActive="active">
+                                <a routerLink="home">Home</a>
+                         </li>                      
+
+                         <li routerLinkActive="active">
+                                <a routerLink="unauthorized">Unauthorized</a>
+                         </li>
+                         <li routerLinkActive="active">
+                                 <a routerLink="students">Students</a>
+                         </li>
+                  </ul>
+                  <router-outlet></router-outlet>
+</div>
+
+
+
+
+Qns 4: Angular 2 - Lifecycle Hooks
+ans: Every component/directive in Angular has a lifecycle; it goes through a number of different phases from its creation, 
+to updating, to  destroy.
+
+1- constructer
+2- ngOnChanges
+3- ngOnInit
+4- ngDoCheck
+5- ngAfterContentInit
+6- ngAfterContentChecked
+7- ngAfterViewInit
+8- ngAfterViewChecked
+9- ngOnDestroy
+
+
+
+After creating a component/directive by calling its constructor, Angular calls the lifecycle hooks in the following 
+order at a specific time.
+
+S.No.	Lifecycle Hook	        Description
+1	ngOnChanges	        Called when the value of a data bound property changes, 
+2	ngOnInit	        Called once the component is initialized
+3	ngDoCheck	        Called during every change detection run
+4	ngAfterContentInit	Called after a content (ng-content) has been projected into view
+5	ngAfterContentCheck	Called every time the projected content has been checked
+6	ngAfterViewInit	        Called after the component’s view and child views has been initialized
+7	ngAfterViewCheck	Called after the component’s view and child views has been checked
+8	ngOnDestroy	        Called once the component is about to destroy
+
+
+1) Constructor:
+The constructor of the component class is called before any other component lifecycle hook. 
+If our component is based on any dependencies, the constructor is the best place to inject those dependencies.
+
+Example:
+
+import {Component} from 'angular2/core';
+import {CarService} from './carService';
+@Component({
+  selector: ‘list-cars’,
+  template: `
+    <ul>
+      <li *ngFor="#car of cars">{{car.name}}</li>
+    </ul>
+  `
+})
+class AppComponent {
+  cars:Array<any>;
+  constructor(private _carService: CarService) {
+   this.cars = _carService.getCars();
+  }
+}
+
+
+
+2) ngOnInit:
+The ngOnInit method of a component is called directly after the constructor and 
+after the ngOnChange is triggered for the first time. It is the perfect place for initialisation work.
+
+
+3). ngOnChanges:
+The ngOnChanges will be called first when the value of a bound property changes. 
+It executes, every time the value of an input property changes. 
+It will receive a changes map, containing the current and previous values of the binding, wrapped in a SimpleChange.
+
+{"brand":{"previousValue":"","currentValue":"BMW"}}
+In the case above, one change to the input property brand is reported. The value of this property has been changed from an empty string to the string “BMW”.
+
+4) ngDoCheck:
+ngDoCheck is triggered every time the input properties of a component or a directive are checked. 
+We can use this lifecycle hook to extend the check with our own custom check logic. It can also be useful 
+if we want to accelerate the change detection by checking the bare minimum and not using the default algorithm (although we usually do not use this).
+
+5) ngAfterContentInit:
+The ngAfterContentInit lifecycle hook is called after ngOnInit when the component or directive’s content has been initialised; 
+basically when all the bindings of the component have been checked for the first time.
+
+6) ngAfterContentChecked:
+Called after every check of the component or directive’s content, effectively when all the bindings of the 
+components have been checked; even if they haven’t changed.
+
+7) ngAfterViewInit:
+Called after ngAfterContentInit when the component’s view has been initialised. Applies to components only.
+
+8) ngAfterViewChecked:
+Called after every check of the component’s view. Applies to components only.
+ When all the bindings of the children directives have been checked; even if they haven’t changed. 
+It can be useful if the component is waiting for something coming from its child components.
+
+9) ngOnDestroy:
+The ngDestroy is called in a component’s lifecycle just before the instance of the component is finally destroyed. 
+It is the perfect place to clean the component?—?for example, to cancel background tasks.
+
+Quick example:
+
+@Directive({
+    selector: '[destroyDirective]'
+})
+export class OnDestroyDirective implements OnDestroy {
+  sayHello: number;
+  constructor() {
+    this.sayHiya = window.setInterval(() => console.log('hello'),     1000);
+  }
+  ngOnDestroy() {
+     window.clearInterval(this.sayHiya);
+  }
+}
+
+Angular 2 component/directive has lifecycle events, managed by @angular/core. It creates the component, renders it, 
+creates and renders its children, processes changes when its data-bound properties change, and then destroys it before 
+removing its template from the DOM. Angular provides a set of lifecycle hooks(special events) which can be tapped into 
+this lifecycle and perform operations when required. The constructor executes prior to all lifecycle events. 
+Each interface has a single hook method prefixed with ng. For example, ngOnint interface has Oninit method that 
+must be implemented in the component. 
+
+Some of the events are applicable for both component/directives while few are specific to components.
+
+ngOnChanges: Responds when angular sets its data-bound property which receives the current and previous object values.
+ngOnInit: Initializes the component/directive after first ngOnChange triggers. This is most frequently used method to 
+          retrieve the data for the template from a back-end service.
+ngDoCheck: Detect and act upon changes occuring outside Angular context. It is called when every change detection run.
+ngOnDestroy: Cleanup just before Angular destroys the directive/component. Unsubscribe observables and detach event 
+              handlers to avoid memory leaks.
+Component-specific hooks:
+
+ngAfterContentInit: Component content has been initialized
+ngAfterContentChecked: After Angular checks the bindings of the external content that it projected into its view.
+ngAfterViewInit: After Angular creates the component’s view.
+ngAfterViewChecked: After Angular checks the bindings of the component’s view.
+
+
+
+
+
+
+
+
+
+Qns: 5, routing in angular 2
+ans: What is routing?
+Routing helps in directing users to different pages based on the option they choose on the main page. 
+Hence, based on the option they choose, the required Angular Component will be rendered to the user.
+
+Router events
+During each navigation, the Router emits navigation events through the Router.events property. 
+These events range from when the navigation starts and ends to many points in between. 
+The full list of navigation events is displayed in the table below.
+
+Router Event	          Description
+NavigationStart	          An event triggered when navigation starts.
+RoutesRecognized          An event triggered when the Router parses the URL and the routes are recognized.
+RouteConfigLoadStart	  An event triggered before the Router lazy loads a route configuration.
+RouteConfigLoadEnd	  An event triggered after a route has been lazy loaded.
+NavigationEnd	          An event triggered when navigation ends successfully.
+NavigationCancel	  An event triggered when navigation is canceled. This is due to a Route Guard returning false during navigation.
+NavigationError	          An event triggered when navigation fails due to an unexpected error.
+
+ Sequence of execution of router event:
+ NavigationStart 
+ RoutesRecognized  
+ GuardsCheckStart
+ GuardsCheckEnd 
+ ResolveStart 
+ ResolveEnd 
+ NavigationCancel (*)
+ NavigationError (*)
+ NavigationEnd 
+
+ NRGGRRNNN
+
+https://angular.io/guide/router
+
+
+
+
+
+
+Qns: 6, What are the advantages of using Angular 2 over Angular 1?
+ans:
+1) Angular 2 is a platform not only a language:
+2) Better Speed and Performance: No $Scope in Angular 2, AOT
+3) Simpler Dependency Injection
+4) Modular, cross platform
+5) Benefits of ES6 and Typescript.
+6) Flexible Routing with Lazy Loading Features
+
+
+
+Angular pipes : lowercase, uppercase, date, currency, slice, percent,
+
+Qns: 7, How will you convert an input to all lowercase?
+ans lowercase filter is used to convert the input to all lowercase.
+<div> 
+   The name of this Tutorial is {{TutorialName}}  
+   The first Topic is  {{appList[0] | lowercase}} 
+   The second Topic is {{appList[1] | lowercase}} 
+   The third Topic is  {{appList[2] | lowercase}} 
+</div> 
+
+
+
+Qns: 8, How will you convert an input to all uppercase?
+ans uppercase filter is used to convert the input to all uppercase.
+<div> 
+  The name of this Tutorial is {{TutorialName}}  
+   The first Topic is  {{appList[0] | uppercase}} 
+   The second Topic is {{appList[1] | uppercase}}
+    The third Topic is {{appList[2] | uppercase}}
+</div> 
+
+
+Qns: 9 How will you get a substring from a string?
+Ans: slice filter is used to slice a piece of data from the input string.
+<div> 
+   The name of this Tutorial is {{TutorialName}}  
+   The first Topic is  {{ appList[0]  | slice:1:2}} 
+   The second Topic is {{ appList[1]  | slice:1:3}} 
+   The third Topic is  {{ appList[2]  | slice:2:3}} 
+</div> 
+
+
+Qns: 10 How will you convert a string into a date?
+ans: date filter is used to convert the input string to date format.
+<div> 
+   The date of this Tutorial is {{newdate | date:"MM/dd/yy"}}
+</div> 
+
+Qns: 11, How will you convert a string into a currency?
+ans: currency filter is used to convert the input string to currency format.
+
+<div> 
+   The currency of this Tutorial is {{newValue | currency}}
+</div> 
+
+Qns: 12, How will you convert a string into a percentage?
+ans: percent filter is used to convert the input string to percentage format.
+
+<div> 
+   The percentage of this Tutorial is {{newValue | percent}}
+</div> 
+
+-----------------------------------------
+How to create the custom pipe in angular?
+----------------------------------------
+
+
+employeeTitle.Pipe.ts
+
+import { Pipe, PipeTransform  } from '@angular/core';
+
+@Pipe({
+    name: 'employeeTitle'
+})
+export class EmployeeTitlePipe implements PipeTransform 
+{
+    transform(value: string, gender: string): string {       
+
+        if (gender.toLowerCase() == 'female')
+        {
+            return "Miss." + value;
+        }
+        else
+        {            
+            return "Mr." + value;
+        }
+    }
+}
+
+applu custom pipes:
+
+<ng-container *ngFor="let employee of employees;>
+            <tr>    
+                <td>
+                    <a [routerLink]="['/employees', employee.code]">
+                        Get Employee Details
+                    </a>
+                </td>           
+                <td>{{employee.code | uppercase}}</td>
+                <td>{{employee.name | employeeTitle: employee.gender}}</td>
+                <td>{{employee.email}}</td>
+                <td>{{employee.dob | date:'dd/MMM/yyyy' | uppercase}}</td>
+                <td>{{employee.salary | currency:'INR': true: '1.3-3'}}</td>               
+            </tr>
+</ng-container>
+
+
+
+Qns 13: Explain app.module.ts file.
+ans: The following code will be present in the app.module.ts file:
+import { NgModule }      from '@angular/core'; 
+import { BrowserModule } from '@angular/platform-browser';  
+import { AppComponent }  from './app.component';  
+
+@NgModule({ 
+   imports:      [ BrowserModule ], 
+   declarations: [ AppComponent  ], 
+   bootstrap:    [ AppComponent  ] 
+}) 
+export class AppModule { } 
+
+Let's go through each line of the code in detail.
+
+The import statement is used to import functionality from the existing modules. 
+Thus, the first 3 statements are used to import the NgModule, BrowserModule and 
+AppComponent modules into this module.
+
+The NgModule decorator is used to later on define the imports, declarations, and bootstrapping options.
+The BrowserModule is required by default for any web based angular application.
+The bootstrap option tells Angular which Component to bootstrap in the application.
+
+
+
+
+
+Qns 14: Explain systemjs.config.json file.
+This file contains the system files required for Angular JS application. 
+This loads all the necessary script files without the need to add a script tag to the html pages. 
+The typical files will have the following code.
+
+/** 
+ * System configuration for Angular samples 
+ * Adjust as necessary for your application needs. 
+*/ 
+(function (global) { 
+   System.config({ 
+      paths: { 
+         // paths serve as alias 
+         'npm:': 'node_modules/' 
+      }, 
+      
+      // map tells the System loader where to look for things 
+      map: { 
+         // our app is within the app folder 
+         app: 'app',  
+         
+         // angular bundles 
+         '@angular/core': 'npm:@angular/core/bundles/core.umd.js', 
+         '@angular/common': 'npm:@angular/common/bundles/common.umd.js', 
+         '@angular/compiler': 'npm:@angular/compiler/bundles/compiler.umd.js', 
+         '@angular/platform-browser': 'npm:@angular/platformbrowser/bundles/platform-browser.umd.js', 
+         '@angular/platform-browser-dynamic': 'npm:@angular/platform-browserdynamic/bundles/platform-browser-dynamic.umd.js', 
+         '@angular/http': 'npm:@angular/http/bundles/http.umd.js', 
+         '@angular/router': 'npm:@angular/router/bundles/router.umd.js', 
+         '@angular/forms': 'npm:@angular/forms/bundles/forms.umd.js',  
+         
+         // other libraries 
+         'rxjs':  'npm:rxjs', 
+         'angular-in-memory-web-api': 'npm:angular-in-memory-web-api/bundles/inmemory-web-api.umd.js' 
+      }, 
+     
+      // packages tells the System loader how to load when no filename and/or no extension 
+      packages: { 
+         app: { 
+            defaultExtension: 'js' 
+         }, 
+         rxjs: { 
+            defaultExtension: 'js' 
+         } 
+      } 
+   }); 
+})(this); 
+Some key points to note about the above code -
+'npm:': 'node_modules/' tells the location in our project where all the npm modules are located.
+The mapping of app: 'app' tells the folder where all our applications files are loaded.
+
+
+
+Qns: 15 Explain package.json file.
+ans: This file contains information about Angular 2 project. Following are the typical settings in the file.
+
+{ 
+   "name": "angular-quickstart", 
+   "version": "1.0.0", 
+   "description": "QuickStart package.json from the documentation, 
+      supplemented with testing support", 
+   
+   "scripts": { 
+      "build": "tsc -p src/", 
+      "build:watch": "tsc -p src/ -w", 
+      "build:e2e": "tsc -p e2e/", 
+      "serve": "lite-server -c=bs-config.json", 
+      "serve:e2e": "lite-server -c=bs-config.e2e.json", 
+      "prestart": "npm run build", 
+      "start": "concurrently \"npm run build:watch\" \"npm run serve\"", 
+      "pree2e": "npm run build:e2e", 
+      "e2e": "concurrently \"npm run serve:e2e\" \"npm run protractor\" --killothers --success first", 
+      "preprotractor": "webdriver-manager update", 
+      "protractor": "protractor protractor.config.js", 
+      "pretest": "npm run build", 
+      "test": "concurrently \"npm run build:watch\" \"karma start karma.conf.js\"", 
+      "pretest:once": "npm run build", 
+      "test:once": "karma start karma.conf.js --single-run", 
+      "lint": "tslint ./src/**/*.ts -t verbose" 
+   }, 
+  
+   "keywords": [], 
+   "author": "", 
+   "license": "MIT", 
+
+   "dependencies": { 
+      "@angular/common": "<2.4.0", 
+      "@angular/compiler": "<2.4.0", 
+      "@angular/core": "<2.4.0",
+      "@angular/forms": "<2.4.0", 
+      "@angular/http": "<2.4.0", 
+      "@angular/platform-browser": "<2.4.0", 
+      "@angular/platform-browser-dynamic": "<2.4.0", 
+      "@angular/router": "<3.4.0",  
+      "angular-in-memory-web-api": <0.2.4", 
+      "systemjs": "0.19.40", 
+      "core-js": "^2.4.1", 
+      "rxjs": "5.0.1", 
+      "zone.js": "^0.7.4" 
+   }, 
+  
+   "devDependencies": { 
+      "concurrently": "^3.2.0", 
+      "lite-server": "^2.2.2", 
+      "typescript": "<2.0.10",  
+      "canonical-path": "0.0.2", 
+      "tslint": "^3.15.1", 
+      "lodash": "^4.16.4", 
+      "jasmine-core": "<2.4.1", 
+      "karma": "^1.3.0", 
+      "karma-chrome-launcher": "^2.0.0", 
+      "karma-cli": "^1.0.1", 
+      "karma-jasmine": "^1.0.2", 
+      "karma-jasmine-html-reporter": "^0.2.2", 
+      "protractor": <4.0.14", 
+      "rimraf": "^2.5.4",  
+      "@types/node": "^6.0.46", 
+      "@types/jasmine": "2.5.36" 
+   }, 
+   "repository": {} 
+}
+Some key points to note about the above code -
+There are two types of dependencies, first is the dependencies and then there are dev dependencies. 
+The dev ones are required during the development process and the others are needed to run the application.
+
+The "build:watch": "tsc -p src/ -w" command is used to compile the typescript in the background by looking for 
+changes in the typescript files.
+
+
+
+
+
+
+Qns: 16 Explain tsconfig.json file.
+ans This file is used to give the options about TypeScript used for the Angular JS project.
+
+{ 
+   "compilerOptions": { 
+      "target": "es5", 
+      "module": "commonjs", 
+      "moduleResolution": "node", 
+      "sourceMap": true, 
+      "emitDecoratorMetadata": true, 
+      "experimentalDecorators": true, 
+      "lib": [ "es2015", "dom" ], 
+      "noImplicitAny": true, 
+      "suppressImplicitAnyIndexErrors": true 
+   } 
+}
+
+Following are some key points to note about the above code.
+The target for the compilation is es5 and that is because most browsers 
+can only understand ES5 typescript.
+
+The sourceMap option is used to generate Map files, which are useful when debugging.
+ Hence, during development it is good to keep this option as true.
+
+The "emitDecoratorMetadata": true and "experimentalDecorators": true is required for Angular JS decorators. 
+If not in place, Angular JS application will not compile.
+
+
+
+
+
+Qns: 17 What is Dependency Injection? Explain with example.
+Ans: Dependency injection is the ability to add the functionality of components at runtime. 
+Let's take a look at an example and the steps used to implement dependency injection.
+
+
+Step 1 - Create a separate class which has the injectable decorator. 
+The injectable decorator allows the functionality of this class to be injected and used in any Angular JS module.
+
+@Injectable() 
+   export class classname {  
+}
+
+
+Step 2 - Next in your appComponent module or the module in which you want to use the service, 
+you need to define it as a provider in the @Component decorator.
+
+@Component ({  
+   providers : [classname] 
+})
+
+
+
+
+
+
+Qns: 18, What are the key components of Angular 2?
+Ans: Angular 2 has the following components -
+
+Modules   - This is used to break up the application into 'logical pieces of code'. 
+            Each piece of code or module is designed to perform a single task.
+Component - This can be used to bring the modules together.
+Templates - This is used to define the views of an Angular JS application.
+Metadata  - This can be used to add more data to an Angular JS class.
+Service   - This is used to create components which can be shared across the entire application.
+
+
+
+Qns 19: Explain Modules in Angular 2.
+ans: Modules are used in Angular JS to put logical boundaries in your application. 
+Hence, instead of coding everything into one application, you can instead build 
+everything into separate modules to separate the functionality of your application. 
+A module is made up of the following parts -
+
+Bootstrap array - This is used to tell Angular JS which components need to be loaded so that its 
+functionality can be accessed in the application. Once you include the component in the bootstrap array, 
+you need to declare them so that they can be used across other components in the Angular JS application.
+
+Export array - This is used to export components, directives, and pipes which can then be used in other modules.
+
+Import array - Just like the export array, the import array can be used to import the functionality from other Angular JS modules.
+
+
+
+Qns: 20 Explain Components in Angular 2.
+ans: Each application consists of Components. Each component is a logical boundary of functionality 
+for the application. You need to have layered services, which are used to share the functionality 
+across components.Following is the anatomy of a Component. A component consists of -
+
+Class - This is like a C or Java class which consists of properties and methods.
+
+Metadata - This is used to decorate the class and extend the functionality of the class.
+
+Template - This is used to define the HTML view which is displayed in the application.
+
+
+
+
+
+
+Qns: 21 What are Angular 2 directives? Explain with examples.
+ans: A directive is a custom HTML element that is used to extend the power of HTML. 
+     Angular 2 has the following directives that get called as part of the BrowserModule module.
+
+ngIf -
+The ngif element is used to add elements to the HTML code if it evaluates to true, else it will not add the elements to the HTML code.
+
+Syntax
+*ngIf = 'expression' 
+If the expression evaluates to true then the corresponding gets added, else the elements are not added.
+
+ngFor -
+The ngFor element is used to elements based on the condition of the For loop.
+
+Syntax
+*ngFor = 'let variable of variablelist' 
+The variable is a temporary variable to display the values in the variablelist.
+
+
+
+
+How to Create Custom Directives?
+--------------------------------
+Custom directives are created by us and are not standard.
+
+Let us see how to create the custom directive. 
+We will create the directive using the command line.
+The command to create the directive using the command line is -
+
+ng g directive nameofthedirective
+
+e.g
+
+ng g directive changeText
+
+This is how it appears in the command line
+
+C:\projectA4\Angular 4-app>ng g directive changeText
+installing directive
+   create src\app\change-text.directive.spec.ts
+   create src\app\change-text.directive.ts
+   update src\app\app.module.ts
+The above files, i.e., change-text.directive.spec.ts and change-text.directive.ts get created and the app.module.ts file is updated.
+
+app.module.ts
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { AppComponent } from './app.component';
+
+import { NewCmpComponent } from './new-cmp/new-cmp.component';
+import { ChangeTextDirective } from './change-text.directive';
+
+@NgModule({
+   declarations: [
+      AppComponent,
+      NewCmpComponent,
+      ChangeTextDirective
+   ],
+
+   imports: [
+      BrowserModule
+   ],
+
+   providers: [],
+   bootstrap: [AppComponent]
+})
+
+export class AppModule { }
+The ChangeTextDirective class is included in the declarations in the above file. The class is also imported from the file given below.
+
+
+
+change-text. directive
+import { Directive } from '@angular/core';
+@Directive({
+   selector: '[changeText]'
+})
+
+export class ChangeTextDirective {
+   constructor() { }
+}
+The above file has a directive and it also has a selector property. 
+Whatever we define in the selector, the same has to match in the view, where we assign the custom directive.
+
+In the app.component.html view, let us add the directive as follows -
+
+<div style="text-align:center">
+   <span changeText >Welcome to {{title}}.</span>
+</div>
+We will write the changes in change-text.directive.ts file as follows -
+
+
+change-text.directive.ts
+
+import { Directive, ElementRef} from '@angular/core';
+
+@Directive({
+   selector: '[changeText]'
+})
+export class ChangeTextDirective {
+   constructor(Element: ElementRef) {
+      console.log(Element);
+      Element.nativeElement.innerText="Text is changed by changeText Directive. ";
+   }
+}
+
+In the above file, there is a class called ChangeTextDirective and a constructor,
+which takes the element of type ElementRef, which is mandatory. The element has all the details to which the Change Text directive is applied.
+We have added the console.log element. The output of the same can be seen in the browser console. The text of the element is also changed as shown above.
+
+
+---------------------------------------------------------------
+How to create the custom directive manually in angular 2?
+--------------------------------------------------------------
+ans: Create below file inside app folder
+ 
+fontcolor.directive.ts
+
+
+import { Directive, ElementRef, Renderer } from '@angular/core';
+
+@Directive({ selector: '[appFontcolor]' })
+
+export class FontcolorDirective {
+		constructor(elem: ElementRef, renderer: Renderer) {
+		   renderer.setElementStyle(elem.nativeElement, 'color', '#EEBA33');
+		}
+}
+
+since we created fontcolor directive manually, 
+it needs to be added in our module file to expose this service to outside world connected with that module.
+
+In our example we are going to add it in app.module.ts file
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+
+import { AppComponent } from './app.component';
+import { ShadowDirective } from './fontcolor.directive';
+
+@NgModule({
+  imports: [ BrowserModule ],
+  declarations: [
+    AppComponent,
+    FontcolorDirective
+  ],
+  bootstrap: [ AppComponent ]
+})
+
+export class AppModule { }
+
+
+Analysing fontcolor.directive.ts
+
+import { Directive, ElementRef, Renderer } from ‘@angular/core’;
+
+Imported the Directive decorator, ElementRef used to get dom element, Renderer to set the element’s style from Angular core module.
+
+@Directive({ selector: ‘[appFontcolor]’ })
+
+@Directive() //decorator will tell the angular that this file used to define custom directive.
+ { selector: ‘[appFontcolor]’ } // parameter inside @Directive() is the directive name we are going to use in our template(<div appFontcolor> Helloworld !!! </div>).
+
+export class FontcolorDirective {
+ constructor(elem: ElementRef, renderer: Renderer) {
+ renderer.setElementStyle(elem.nativeElement, ‘color’, ‘#EEBA33’);
+ }
+ }
+
+Final step : exported class in which ElementRef is used get the current dom element and Renderer 
+is used to apply style to the selected element.
+
+Implementation: if fontcolor directive is used in app component will be like below.
+
+app.component.html
+
+<div appFontcolor> Helloworld !!! </div>
+
+
+
+
+
+
+
+
+
+Qns 22: How will you handle errors in Angular 2 applications?
+ans: 
+ Angular 2 applications have the option of error handling.
+ This is done by including the ReactJS catch library and then using the catch function.
+ The catch function contains a link to the Error Handler function.
+
+In the error handler function, we send the error to the console. 
+We also throw the error back to the main program so that the execution can continue.
+
+Now, whenever you get an error it will be redirected to the error console of the browser.
+
+
+
+
+
+Qns 23: Why SPA and Angular 2?
+Ans:  An SPA renders only one HTML page from the server, when the user starts the app. 
+Along with that one HTML page, the server sends an application engine to the client. 
+The engine controls the entire application including processing, input, output, painting, 
+and loading of the HTML pages. Typically, 90–95 percent of the application code runs in 
+the browser; the rest works in the server when the user needs new data or must perform 
+secured operations such as authentication. Because dependency on the server is mostly removed, 
+an SPA autoscales in the Angular 2 environment: No matter how many users access the server 
+simultaneously, 90–95 percent of the time the app's performance is never impacted.
+
+Also, because most of the load is running on the client, the server is idle most of the time. 
+Low demand on server resources reduces stress on the server significantly, potentially 
+reducing server costs.
+
+Another advantage of Angular 2 is that it helps SPAs to consume microservices effectively.
+“ Typically, 90 to 95 percent of SPA code runs in the browser; 
+the rest works in the server when the user needs new data or 
+must perform secured operations such as authentication.”
+
+
+Qns: 24 angular using cli
+ans: https://github.com/angular/angular-cli/wiki
+
+  1) npm install -g @angular/cli
+  2) ng new my-project
+  3) cd my-project
+  4) ng serve
+   
+  5) ng g c componentName 
+  or
+  ng generate component componentname  
+  
+  this will add a floder under app folder with component name 
+  and add .css, .ts, .html and .spec.ts
+
+ 6) ng g s LoginServive
+ or
+ ng generate service service-name
+  => this will add the service under app folder
+
+Additional Commands
+ng new
+ng serve
+ng generate
+ng lint
+ng test
+ng e2e
+ng build
+ng get/ng set
+ng doc
+ng xi18n
+ng update
+
+
+Qns 25 why .spec.ts file in a2?
+ans:
+The spec files are unit tests for your source files. 
+The convention for Angular applications is to have a .spec.ts file for each .ts file. 
+They are run using the Jasmine javascript test framework through the Karma task runner when you use the ng test command.
+
+
+Qns 26: angular 2 login and registration example
+ans:
+http://jasonwatmore.com/post/2016/09/29/angular-2-user-registration-and-login-example-tutorial
+
+
+
+Qns 27: how to change port using cmd propmt
+ans ng serve --port 4401    
+
+
+
+Qns 28 how to install bootstrap in angular project?
+ans:
+
+
+
+Qns 29 HTML <form> novalidate Attribute
+
+ <!DOCTYPE html>
+<html>
+<body>
+
+<form action="/action_page.php" novalidate>
+E-mail: <input type="email" name="user_email" required>
+<input type="submit">
+</form>
+
+<p><strong>Note:</strong> The novalidate attribute of the form tag is not supported in Internet Explorer 9 and earlier versions, or in Safari 
+10 and earlier versions.</p>
+
+</body>
+</html>
+
+means: Indicate that the form is not to be validated on submit:
+
+
+<!DOCTYPE html>
+<html>
+<body>
+
+<form action="/action_page.php">
+E-mail: <input type="email" name="user_email" required>
+<input type="submit">
+</form>
+
+<p><strong>Note:</strong> The novalidate attribute of the form tag is not supported in Internet Explorer 9 and earlier versions, or in Safari 
+10 and earlier versions.</p>
+
+</body>
+</html>
+
+means: Indicate that the form is validated on submit:
+
+Note: novalidate attribute is used to disable browser's native form validation.
+      You can use it when you need do your own AngularJS custom validation.
+
+
+
+Qns 30: Template reference variables ( #var )
+ans: 
+A template reference variable is often a reference to a DOM element within a template. 
+It can also be a reference to an Angular component or directive or a web component.
+
+Use the hash symbol (#) to declare a reference variable. The #phone declares a phone variable on an <input> element.
+
+src/app/app.component.html
+
+<input #phone placeholder="phone number">
+You can refer to a template reference variable anywhere in the template.
+ The phone variable declared on this <input> is consumed in a <button> on the other side of the template
+
+
+<input #phone placeholder="phone number">
+
+<!-- lots of other elements -->
+
+<!-- phone refers to the input element; pass its `value` to an event handler -->
+<button (click)="callPhone(phone.value)">Call</button>
+
+How a reference variable gets its value?
+----------------------------------------
+In most cases, Angular sets the reference variable's value to the element on which it was declared. 
+In the previous example, phone refers to the phone number <input> box. 
+The phone button click handler passes the input value to the component's callPhone method. 
+But a directive can change that behavior and set the value to something else, such as itself. The NgForm directive does that.
+
+The following is a simplified version of the form example in the Forms guide.
+
+src/app/hero-form.component.html
+
+<form (ngSubmit)="onSubmit(heroForm)" #heroForm="ngForm">
+  <div class="form-group">
+    <label for="name">Name
+      <input class="form-control" name="name" required [(ngModel)]="hero.name">
+    </label>
+  </div>
+  <button type="submit" [disabled]="!heroForm.form.valid">Submit</button>
+</form>
+<div [hidden]="!heroForm.form.valid">
+  {{submitMessage}}
+</div>
+
+A template reference variable, heroForm, appears three times in this example, separated by a large amount of HTML. 
+What is the value of heroForm?
+
+If Angular hadn't taken it over when you imported the FormsModule, it would be the HTMLFormElement. 
+The heroForm is actually a reference to an Angular NgForm directive with the ability to track the value and validity of every control 
+in the form.
+
+The native <form> element doesn't have a form property. But the NgForm directive does, 
+which explains how you can disable the submit button if the heroForm.form.valid is invalid and 
+pass the entire form control tree to the parent component's onSubmit method.
+
+Template reference variable warning notes?
+---------------------------------------------
+A template reference variable (#phone) is not the same as a template input variable (let phone) 
+such as you might see in an *ngFor. Learn the difference in the Structural Directives guide.
+
+The scope of a reference variable is the entire template. 
+Do not define the same variable name more than once in the same template. The runtime value will be unpredictable.
+
+You can use the ref- prefix alternative to #. 
+This example declares the fax variable as ref-fax instead of #fax.
+
+src/app/app.component.html
+
+<input ref-fax placeholder="fax number">
+<button (click)="callFax(fax.value)">Fax</button>
+
+
+
+Qns 31: User Inputs:
+ans: 
+   1) <button (click)="onClickMe()">Click me!</button>
+  
+ex: 
+@Component({
+  selector: 'app-click-me',
+  template: `
+    <button (click)="onClickMe()">Click me!</button>
+    {{clickMessage}}`
+})
+export class ClickMeComponent {
+  clickMessage = '';
+
+  onClickMe() {
+    this.clickMessage = 'You are my hero!';
+  }
+}
+
+
+2) Get user input from the $event object
+
+template: `
+  <input (keyup)="onKey($event)">
+  <p>{{values}}</p>
+`
+example:
+export class KeyUpComponent_v1 {
+  values = '';
+
+  onKey(event: any) { // without type info
+    this.values += event.target.value + ' | ';
+  }
+}
+
+or
+
+Type the $event
+ex:
+export class KeyUpComponent_v1 {
+  values = '';
+
+
+  onKey(event: KeyboardEvent) { // with type info
+    this.values += (<HTMLInputElement>event.target).value + ' | ';
+  }
+}
+
+
+
+3) Get user input from a template reference variable
+ex:
+@Component({
+  selector: 'app-loop-back',
+  template: `
+    <input #box (keyup)="0">
+    <p>{{box.value}}</p>
+  `
+})
+export class LoopbackComponent { }
+
+or
+It's easier to get to the input box with the template reference variable than to go through the $event object
+
+@Component({
+  selector: 'app-key-up2',
+  template: `
+    <input #box (keyup)="onKey(box.value)">
+    <p>{{values}}</p>
+  `
+})
+export class KeyUpComponent_v2 {
+  values = '';
+  onKey(value: string) {
+    this.values += value + ' | ';
+  }
+}
+
+
+4) Key event filtering (with key.enter)
+ex: 
+@Component({
+  selector: 'app-key-up3',
+  template: `
+    <input #box (keyup.enter)="onEnter(box.value)">
+    <p>{{value}}</p>
+  `
+})
+export class KeyUpComponent_v3 {
+  value = '';
+  onEnter(value: string) { this.value = value; }
+}
+
+5) On blur
+example: 
+
+In the previous example, 
+the current state of the input box is lost if the user mouses away and clicks 
+elsewhere on the page without first pressing Enter. The component's value property 
+is updated only when the user presses Enter.
+
+To fix this issue, listen to both the Enter key and the blur event.
+
+src/app/keyup.components.ts (v4)
+
+@Component({
+  selector: 'app-key-up4',
+  template: `
+    <input #box
+      (keyup.enter)="update(box.value)"
+      (blur)="update(box.value)">
+
+    <p>{{value}}</p>
+  `
+})
+export class KeyUpComponent_v4 {
+  value = '';
+  update(value: string) { this.value = value; }
+}
+
+
+EXAMPLE:Below is the "Little Tour of Heroes" component.
+
+@Component({
+  selector: 'app-little-tour',
+  template: `
+    <input #newHero
+      (keyup.enter)="addHero(newHero.value)"
+      (blur)="addHero(newHero.value); newHero.value='' ">
+
+    <button (click)="addHero(newHero.value)">Add</button>
+
+    <ul><li *ngFor="let hero of heroes">{{hero}}</li></ul>
+  `
+})
+export class LittleTourComponent {
+  heroes = ['Windstorm', 'Bombasto', 'Magneta', 'Tornado'];
+  addHero(newHero: string) {
+    if (newHero) {
+      this.heroes.push(newHero);
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GIT Commands:
+git repo:
+https://github.com/umeshsolanki1000/testrepository/tree/develop
+user name: umeshsolanki1000
+pwd: 
+
+
+git add . :- add all your files to the current stage
+git add filename : add a single file
+git status : display the current status
+git branch :- display all branches
+git branch Hello : create new branch 'hello'
+git branch checkout hello : Switches to the speci?ed branch and updates the working directory
+git branch -d hello : to delete a branch
+git clone  url
+git commit -m "message"
+git pull origin master
+git push origin develop
+git init [projectname]
+git clean -f:
+
+
+// keep history for previous commit
+git reset --hard f414f31
+git reset --soft HEAD@{1}
+git commit -m "Reverting to the state of the project at f414f31"
+git pull origin develop --force
+
+//does not keep history for previous commit means remove all commits made after => f414f31
+git reset --hard f414f31
+git commit -m "Reverting to the state of the project at f414f31"
+git pull origin develop --force
+
+
+
+TFS
+
+Check In : check in code to server
+
+Check Out for Edit:  
+In Solution Explorer or in Source Control Explorer, select the files that you want to edit, 
+open their shortcut menu, and choose Check Out for Edit.
+
+(Optional) You can lock the file.
+Important:
+As a best practice, use the Lock type option with discretion and notify your teammates why you are locking an item,
+and when you plan to remove the lock.
+
+On the Lock type menu, choose:
+Unchanged: Do not apply a lock to the items.
+Check Out: Prevent other users from checking out and checking in the items until you check in and unlock them.
+
+
+
+Get Letest Version: get the letest version, verify/merge the conflict if any
+
+Undo Pending changes:
+Shelve pending chnages:
+View History:
+
+
+
+
+
+
